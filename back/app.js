@@ -2,6 +2,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 require('dotenv').config()
 
+const { logger, errorHandler } = require('./utils/middleware')
+
 const loginRouter = require('./controllers/login')
 const usersRouter = require('./controllers/users')
 
@@ -17,27 +19,8 @@ mongoose.connect(db_uri, { useNewUrlParser: true, useUnifiedTopology: true, useC
 app.use('/api/login', loginRouter)
 app.use('/api/users', usersRouter)
 
-app.use((request, response, next) => {
-  let logMessage = `${request.method} ${request.path}`
-  if (Object.keys(request.params).length > 0) {
-    logMessage = logMessage.concat(' Params: ', request.params)
-  }
-  if (Object.keys(request.body).length > 0) {
-    logMessage = logMessage.concat(' Body: ', request.body)
-  }
-
-  response.on('close', () => {
-    logMessage = logMessage.concat(' - ', response.statusCode)
-    console.log(logMessage)
-  })
-
-  response.on('aborted', () => {
-    logMessage= logMessage.concat(' - ', response.statusCode, ' ABORTED')
-    console.error(logMessage)
-  })
-
-  next()
-})
+app.use(logger)
+app.use(errorHandler)
 
 module.exports = app
 
