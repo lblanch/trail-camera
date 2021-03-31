@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 require('dotenv').config()
 
 const loginRouter = require('./controllers/login')
+const usersRouter = require('./controllers/users')
 
 const app = express()
 app.use(express.json())
@@ -14,6 +15,7 @@ mongoose.connect(db_uri, { useNewUrlParser: true, useUnifiedTopology: true, useC
 
 
 app.use('/api/login', loginRouter)
+app.use('/api/users', usersRouter)
 
 app.use((request, response, next) => {
   let logMessage = `${request.method} ${request.path}`
