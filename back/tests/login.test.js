@@ -1,38 +1,20 @@
 const app = require('../app')
-const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 
-const { createToken } = require('../utils/authentication')
-const User = require('../models/user')
+const { reloadAdminUser } = require('./helpers/users_helper')
 
 const api = supertest(app)
 
-let testUser = {
-  name: 'Person1',
-  email: 'person1@email.com',
-  password: '123456'
-}
-
-let testUserToken
+let testUser
 
 beforeEach(async () => {
-  await User.deleteMany({})
-  const saltRounds = 10
-  const passHash = await bcrypt.hash(testUser.password, saltRounds)
-  const UserObject = new User({
-    name: testUser.name,
-    email: testUser.email,
-    passwordHash: passHash
-  })
-
-  await UserObject.save()
-
-  testUserToken = createToken({ email: testUser.email, id: UserObject._id })
-  testUser._id = UserObject._id
+  console.log('before login.test')
+  testUser = await reloadAdminUser()
 })
 
 afterAll(() => {
+  console.log('after login.test')
   mongoose.connection.close()
 })
 
@@ -80,31 +62,5 @@ describe('Login', () => {
 
       expect(error.body).toHaveProperty('error')
     })
-  })
-})
-
-describe('Create user', () => {
-  const newUser = {
-    name: 'Person2',
-    email: 'person2@email.com',
-    role: 'admin',
-  }
-
-  test('sucessful user creation', async () => {
-    const userAmountBefore = await User.estimatedDocumentCount()
-    const response = await api
-      .post('/api/users')
-      .set('Authorization', `bearer ${testUserToken}`)
-      .send(newUser)
-      .expect(201)
-      .expect('Content-type', /application\/json/)
-
-    const userAmountAfter = await User.estimatedDocumentCount()
-
-    expect(response.body._id).toBeDefined()
-    expect(response.body.name).toEqual(newUser.name)
-    expect(response.body.email).toEqual(newUser.email)
-    expect(response.body.role).toEqual(newUser.role)
-    expect(userAmountAfter).toEqual(userAmountBefore + 1)
   })
 })
