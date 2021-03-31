@@ -32,21 +32,43 @@ afterAll(() => {
 
 describe('Login', () => {
   test('sucessful login', async () => {
-    const response = await api.post('/api/login').send(testUser)
+    const response = await api
+      .post('/api/login')
+      .send(testUser)
+      .expect('Content-type', /application\/json/)
     expect(response.body.token).toBeDefined()
     expect(response.body.name).toEqual(testUser.name)
+    expect(response.body.email).toEqual(testUser.email)
   })
 
   describe('unsucessful login', () => {
     test('when passed empty user', async () => {
-      try {
-        await api
-          .post('/api/login')
-          .send({})
-          .expect(401)
-      } catch (exception) {
-        expect(exception).toBeUndefined()
-      }
+      const error = await api
+        .post('/api/login')
+        .send({})
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+      expect(error.body).toHaveProperty('error')
+    })
+
+    test('when passed wrong email', async () => {
+      const error = await api
+        .post('/api/login')
+        .send({ email: 'wrong@email.com', password: testUser.password })
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.body).toHaveProperty('error')
+    })
+
+    test('when passed wrong password', async () => {
+      const error = await api
+        .post('/api/login')
+        .send({ email: testUser.email, password: 'wrongPassword' })
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.body).toHaveProperty('error')
     })
   })
 })
