@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     minLength: 5,
     unique: true,
-    required: true
+    required: true,
+    match: [/\S+@\S+\.\S+/, 'Invalid email address.']
   },
   name: {
     type: String,

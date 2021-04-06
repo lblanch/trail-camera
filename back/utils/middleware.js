@@ -14,11 +14,13 @@ const errorHandler = (error, request, response, next) => {
 
 const logger = (request, response, next) => {
   let logMessage = `${request.method} ${request.path}`
-  if (Object.keys(request.params).length > 0) {
-    logMessage = logMessage.concat(' Params: ', request.params)
+  const paramsString = JSON.stringify(request.params)
+  if (paramsString.length > 2) {
+    logMessage = logMessage.concat(' Params: ', paramsString)
   }
-  if (Object.keys(request.body).length > 0) {
-    logMessage = logMessage.concat(' Body: ', request.body)
+  const bodyString = JSON.stringify(request.body)
+  if (bodyString.length > 2) {
+    logMessage = logMessage.concat(' Body: ', bodyString)
   }
 
   response.on('close', () => {

@@ -5,16 +5,33 @@ const supertest = require('supertest')
 const User = require('../models/user')
 const { reloadAdminUser } = require('./helpers/users_helper')
 
-const api = supertest(app)
-
+let api
+let server
 let testUser
+
+beforeAll(async () => {
+  await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
+  new Promise((resolve, reject) => {
+    server = app.listen(5000, (err) => {
+      if (err) return reject(err)
+      resolve()
+    })
+  })
+
+  api = supertest.agent(server)
+})
 
 beforeEach(async () => {
   testUser = await reloadAdminUser()
 })
 
-afterAll(() => {
+afterAll(async () => {
   mongoose.connection.close()
+  await new Promise((resolve, reject) => server.close((err) => {
+    if (err) return reject(err)
+
+    resolve()
+  }))
 })
 
 describe('Create user', () => {
@@ -24,7 +41,7 @@ describe('Create user', () => {
     role: 'admin',
   }
 
-  test('sucessful user creation', async () => {
+  test('sucessful user creation returns valid user and status 201', async () => {
     const userAmountBefore = await User.estimatedDocumentCount()
     const response = await api
       .post('/api/users')
@@ -40,5 +57,24 @@ describe('Create user', () => {
     expect(response.body.email).toEqual(newUser.email)
     expect(response.body.role).toEqual(newUser.role)
     expect(userAmountAfter).toEqual(userAmountBefore + 1)
+  })
+
+  describe('unsuccessful user creation', () => {
+    //TODO when passed invalid token, missing token, etc...
+
+    test('when passed invalid email returns status 400 and error message', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const error = await api
+        .post('/api/users')
+        .set('Authorization', `bearer ${testUser.token}`)
+        .send({ ...newUser, email: 'invalidEmail' })
+        .expect(400)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(error.body).toHaveProperty('error')
+      expect(userAmountAfter).toEqual(userAmountBefore)
+    })
   })
 })
