@@ -1,4 +1,4 @@
-const app = require('../app')
+const { app, store } = require('../app')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 
@@ -10,7 +10,7 @@ let testUser
 
 beforeAll(async () => {
   await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-  new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     server = app.listen(5000, (err) => {
       if (err) return reject(err)
       resolve()
@@ -31,6 +31,7 @@ afterAll(async () => {
 
     resolve()
   }))
+  await store.client.close()
 })
 
 describe('Login', () => {

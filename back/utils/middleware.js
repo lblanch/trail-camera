@@ -1,15 +1,20 @@
+// eslint-disable-next-line no-unused-vars
 const errorHandler = (error, request, response, next) => {
   console.error('[Error handler] ', error.name, ': ', error.message)
 
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformated id' })
-  } else if (error.name === 'ValidationError') {
-    return response.status(400).send({ error: error.message })
-  } else if (error.name === 'JsonWebTokenError') {
-    return response.status(401).send({ error: 'token missing or malformed' })
+  if (error.name === 'ValidationError') {
+    error.statusCode = 400
   }
 
-  next(error)
+  //Send error response
+  if (error.statusCode) {
+    if (error.statusCode === 401) {
+      response.set('WWW-Authenticate', 'bearer')
+    }
+    response.status(error.statusCode).send({ error: error.message })
+  } else {
+    response.status(500).send({ error: error.message })
+  }
 }
 
 const logger = (request, response, next) => {

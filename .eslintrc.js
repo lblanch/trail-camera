@@ -26,6 +26,7 @@ module.exports = {
       'error',
       'never'
     ],
+    'camelcase': 'warn',
     'eqeqeq': 'error',
     'no-trailing-spaces': 'error',
     'object-curly-spacing': [

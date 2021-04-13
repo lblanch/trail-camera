@@ -1,9 +1,15 @@
 const loginRouter = require('express').Router()
 
-const { comparePasswordHash, createToken } = require('../utils/authentication')
+const { comparePasswordHash } = require('../utils/authentication')
 const User = require('../models/user')
 
 loginRouter.post('/', async (request, response) => {
+  if (request.session.user) {
+    return response.status(401).json({
+      error: 'A user is already logged in'
+    })
+  }
+
   const user = await User.findOne({ email: request.body.email })
   const isPasswordCorrect = (user === null) || !request.body.password ?
     false :
@@ -15,16 +21,11 @@ loginRouter.post('/', async (request, response) => {
     })
   }
 
-  const userForToken = {
-    email: user.email,
-    id: user._id
-  }
-
-  const token = createToken(userForToken)
+  request.session.user = user._id
 
   response
     .status(200)
-    .send({ token, email: user.email, name: user.name })
+    .end()
 })
 
 module.exports = loginRouter

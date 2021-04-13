@@ -1,5 +1,5 @@
 const User = require('../../models/user')
-const { hashPassword, createToken } = require('../../utils/authentication')
+const { hashPassword } = require('../../utils/authentication')
 
 const testUser = {
   name: 'Person1',
@@ -20,8 +20,7 @@ const reloadAdminUser = async () => {
 
   await UserObject.save()
 
-  const testUserToken = createToken({ email: testUser.email, id: UserObject._id })
-  return { ...testUser, token: testUserToken, id: UserObject._id }
+  return { ...testUser, id: UserObject._id }
 }
 
 module.exports = { reloadAdminUser }
