@@ -17,7 +17,15 @@ beforeAll(async () => {
     })
   })
 
-  api = supertest.agent(server)
+  //Clear session store
+  await new Promise((resolve, reject) => store.clear((err) => {
+    if (err) return reject(err)
+
+    resolve()
+  }))
+
+  //do not persist requests/cookies
+  api = supertest(server)
 })
 
 beforeEach(async () => {
@@ -35,25 +43,48 @@ afterAll(async () => {
 })
 
 describe('Login', () => {
-  test('sucessful login returns token', async () => {
+  test('sucessful login when no existing session returns status 200, user info and sets cookie', async () => {
     const response = await api
       .post('/api/login')
       .send({ email: testUser.email, password: testUser.password })
+      .expect(200)
       .expect('Content-type', /application\/json/)
-    expect(response.body.token).toBeDefined()
-    //TODO: should the tokens be equal? sometimes it fails...
-    //expect(response.body.token).toEqual(testUser.token)
+      .expect('set-cookie', /^sid=.+/)
+
     expect(response.body.name).toEqual(testUser.name)
     expect(response.body.email).toEqual(testUser.email)
   })
 
   describe('unsucessful login', () => {
+    test('when someone is already logged in, returns status 400 and error message', async () => {
+      const response = await api
+        .post('/api/login')
+        .send({ email: testUser.email, password: testUser.password })
+        .expect(200)
+        .expect('Content-type', /application\/json/)
+        .expect('set-cookie', /^sid=.+/)
+
+      const cookie = response.headers['set-cookie']
+
+      const error = await api
+        .post('/api/login')
+        .set('Cookie', cookie)
+        .send({ email: testUser.email, password: testUser.password })
+        .expect(400)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.headers['set-cookie']).toBeUndefined()
+      expect(error.body).toHaveProperty('error')
+    })
+
     test('when passed empty user returns status 401 and error message', async () => {
       const error = await api
         .post('/api/login')
         .send({})
         .expect(401)
         .expect('Content-type', /application\/json/)
+
+      expect(error.headers['set-cookie']).toBeUndefined()
       expect(error.body).toHaveProperty('error')
     })
 
@@ -64,6 +95,7 @@ describe('Login', () => {
         .expect(401)
         .expect('Content-type', /application\/json/)
 
+      expect(error.headers['set-cookie']).toBeUndefined()
       expect(error.body).toHaveProperty('error')
     })
 
@@ -74,6 +106,7 @@ describe('Login', () => {
         .expect(401)
         .expect('Content-type', /application\/json/)
 
+      expect(error.headers['set-cookie']).toBeUndefined()
       expect(error.body).toHaveProperty('error')
     })
 
@@ -85,6 +118,7 @@ describe('Login', () => {
         .expect(401)
         .expect('Content-type', /application\/json/)
 
+      expect(error.headers['set-cookie']).toBeUndefined()
       expect(error.body).toHaveProperty('error')
     })
   })

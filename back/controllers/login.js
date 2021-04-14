@@ -5,9 +5,9 @@ const User = require('../models/user')
 
 loginRouter.post('/', async (request, response) => {
   if (request.session.user) {
-    return response.status(401).json({
-      error: 'A user is already logged in'
-    })
+    const newError = new Error('A user is already logged in')
+    newError.statusCode = 400
+    throw newError
   }
 
   const user = await User.findOne({ email: request.body.email })
@@ -16,16 +16,16 @@ loginRouter.post('/', async (request, response) => {
     await comparePasswordHash(request.body.password, user.passwordHash)
 
   if (!(user && isPasswordCorrect)) {
-    return response.status(401).json({
-      error: 'invalid email or password'
-    })
+    const newError = new Error('invalid email or password')
+    newError.statusCode = 401
+    throw newError
   }
 
   request.session.user = user._id
 
   response
     .status(200)
-    .end()
+    .send({ name: user.name, email: user.email })
 })
 
 module.exports = loginRouter

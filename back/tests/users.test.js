@@ -19,6 +19,14 @@ beforeAll(async () => {
     })
   })
 
+  //Clear session store
+  await new Promise((resolve, reject) => store.clear((err) => {
+    if (err) return reject(err)
+
+    resolve()
+  }))
+
+  //persist requests/cookies
   api = supertest.agent(server)
 })
 
