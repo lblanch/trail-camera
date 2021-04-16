@@ -51,7 +51,6 @@ test('Create user with no user logged in returns status 401 and error message', 
 test('Create user with non admin user logged in returns status 403 and error message', async () => {
   //create basic user and login
   testBasicUser = await reloadBasicUser()
-
   await agentBasic
     .post('/api/login')
     .send({ email: testBasicUser.email, password: testBasicUser.password })
@@ -77,25 +76,102 @@ describe('Create user with admin user logged in', () => {
       .send({ email: testAdminUser.email, password: testAdminUser.password })
   })
 
-  test('sucessful user creation returns valid user and status 201', async () => {
-    const userAmountBefore = await User.estimatedDocumentCount()
-    const response = await agentAdmin
-      .post('/api/users')
-      .send(newUser)
-      .expect(201)
-      .expect('Content-type', /application\/json/)
+  describe('sucessful user creation', () => {
+    test('when passed valid data returns valid user and status 201', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const response = await agentAdmin
+        .post('/api/users')
+        .send(newUser)
+        .expect(201)
+        .expect('Content-type', /application\/json/)
 
-    const userAmountAfter = await User.estimatedDocumentCount()
+      const userAmountAfter = await User.estimatedDocumentCount()
 
-    expect(response.body._id).toBeDefined()
-    expect(response.body.name).toEqual(newUser.name)
-    expect(response.body.email).toEqual(newUser.email)
-    expect(response.body.role).toEqual(newUser.role)
-    expect(userAmountAfter).toEqual(userAmountBefore + 1)
+      expect(response.body._id).toBeDefined()
+      expect(response.body.name).toEqual(newUser.name)
+      expect(response.body.email).toEqual(newUser.email)
+      expect(response.body.role).toEqual(newUser.role)
+      expect(userAmountAfter).toEqual(userAmountBefore + 1)
+    })
+
+    test('when missing role returns valid user with role "user" and status 201', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const response = await agentAdmin
+        .post('/api/users')
+        .send({ name: newUser.name, email: newUser.email })
+        .expect(201)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(response.body._id).toBeDefined()
+      expect(response.body.name).toEqual(newUser.name)
+      expect(response.body.email).toEqual(newUser.email)
+      expect(response.body.role).toEqual('user')
+      expect(userAmountAfter).toEqual(userAmountBefore + 1)
+    })
+
+    test('when passed password or hash it is ignored and returns valid user and status 201', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const response = await agentAdmin
+        .post('/api/users')
+        .send({ ...newUser, password: 'secret', passwordHash: 'thisissupposedtobeahash' })
+        .expect(201)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(response.body._id).toBeDefined()
+      expect(response.body.name).toEqual(newUser.name)
+      expect(response.body.email).toEqual(newUser.email)
+      expect(response.body.role).toEqual(newUser.role)
+      expect(response.body.passwordHash).toBeUndefined()
+      expect(userAmountAfter).toEqual(userAmountBefore + 1)
+    })
   })
 
   describe('unsuccessful user creation', () => {
-    //TODO when passed invalid token, missing token, etc...
+    test('when missing email returns status 400 and error message', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const error = await agentAdmin
+        .post('/api/users')
+        .send({ name: newUser.name, role: newUser.role })
+        .expect(400)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(error.body).toHaveProperty('error')
+      expect(userAmountAfter).toEqual(userAmountBefore)
+    })
+
+    test('when missing name returns status 400 and error message', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const error = await agentAdmin
+        .post('/api/users')
+        .send({ email: newUser.email, role: newUser.role })
+        .expect(400)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(error.body).toHaveProperty('error')
+      expect(userAmountAfter).toEqual(userAmountBefore)
+    })
+
+    test('when passed existing user email returns status 400 and error message', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const error = await agentAdmin
+        .post('/api/users')
+        .send({ ...newUser, email: testAdminUser.email })
+        .expect(400)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(error.body).toHaveProperty('error')
+      expect(userAmountAfter).toEqual(userAmountBefore)
+    })
 
     test('when passed invalid email returns status 400 and error message', async () => {
       const userAmountBefore = await User.estimatedDocumentCount()

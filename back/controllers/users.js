@@ -11,6 +11,9 @@ usersRouter.post('/', async (request, response) => {
     newError.statusCode = 403
     throw newError
   }
+
+  delete request.body.passwordHash
+
   const newUser = new User(request.body)
   const savedUser = await newUser.save()
 
