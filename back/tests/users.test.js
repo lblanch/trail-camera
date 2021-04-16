@@ -1,61 +1,86 @@
 //require('leaked-handles')
-const { app, store } = require('../app')
-const mongoose = require('mongoose')
 const supertest = require('supertest')
 
 const User = require('../models/user')
-const { reloadAdminUser } = require('./helpers/users_helper')
+const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('./helpers/test_helper')
+const { reloadAdminUser, reloadBasicUser, clearUsers } = require('./helpers/users_helper')
 
-let api
+let agentAdmin, agentBasic, agentLogout
 let server
-let testUser
+let testAdminUser, testBasicUser
+
+const newUser = {
+  name: 'Person2',
+  email: 'person2@email.com',
+  role: 'admin',
+}
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-  await new Promise((resolve, reject) => {
-    server = app.listen(5000, (err) => {
-      if (err) return reject(err)
-      resolve()
-    })
-  })
+  server = await handleTestConnection()
 
-  //Clear session store
-  await new Promise((resolve, reject) => store.clear((err) => {
-    if (err) return reject(err)
-
-    resolve()
-  }))
-
-  //persist requests/cookies
-  api = supertest.agent(server)
+  //Create 3 agents, to login different users
+  agentLogout = supertest.agent(server)
+  agentAdmin = supertest.agent(server)
+  agentBasic = supertest.agent(server)
 })
 
 beforeEach(async () => {
-  testUser = await reloadAdminUser()
+  await clearSessionStore()
+  await clearUsers()
+  testAdminUser = await reloadAdminUser()
 })
 
 afterAll(async () => {
-  mongoose.connection.close()
-  await new Promise((resolve, reject) => server.close((err) => {
-    if (err) return reject(err)
-
-    resolve()
-  }))
-  await store.client.close()
+  await handleTestDisconnection(server)
 })
 
-describe('Create user', () => {
-  const newUser = {
-    name: 'Person2',
-    email: 'person2@email.com',
-    role: 'admin',
-  }
+test('Create user with no user logged in returns status 401 and error message', async () => {
+  const userAmountBefore = await User.estimatedDocumentCount()
+  const error = await agentLogout
+    .post('/api/users')
+    .send(newUser)
+    .expect(401)
+    .expect('Content-type', /application\/json/)
+
+  const userAmountAfter = await User.estimatedDocumentCount()
+
+  expect(error.body).toHaveProperty('error')
+  expect(userAmountAfter).toEqual(userAmountBefore)
+})
+
+test('Create user with non admin user logged in returns status 403 and error message', async () => {
+  //create basic user and login
+  testBasicUser = await reloadBasicUser()
+
+  await agentBasic
+    .post('/api/login')
+    .send({ email: testBasicUser.email, password: testBasicUser.password })
+
+  const userAmountBefore = await User.estimatedDocumentCount()
+  const error = await agentBasic
+    .post('/api/users')
+    .send(newUser)
+    .expect(403)
+    .expect('Content-type', /application\/json/)
+
+  const userAmountAfter = await User.estimatedDocumentCount()
+
+  expect(error.body).toHaveProperty('error')
+  expect(userAmountAfter).toEqual(userAmountBefore)
+})
+
+describe('Create user with admin user logged in', () => {
+  beforeEach(async () => {
+    //login with Admin user
+    await agentAdmin
+      .post('/api/login')
+      .send({ email: testAdminUser.email, password: testAdminUser.password })
+  })
 
   test('sucessful user creation returns valid user and status 201', async () => {
     const userAmountBefore = await User.estimatedDocumentCount()
-    const response = await api
+    const response = await agentAdmin
       .post('/api/users')
-      .set('Authorization', `bearer ${testUser.token}`)
       .send(newUser)
       .expect(201)
       .expect('Content-type', /application\/json/)
@@ -74,9 +99,8 @@ describe('Create user', () => {
 
     test('when passed invalid email returns status 400 and error message', async () => {
       const userAmountBefore = await User.estimatedDocumentCount()
-      const error = await api
+      const error = await agentAdmin
         .post('/api/users')
-        .set('Authorization', `bearer ${testUser.token}`)
         .send({ ...newUser, email: 'invalidEmail' })
         .expect(400)
         .expect('Content-type', /application\/json/)

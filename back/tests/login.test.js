@@ -1,45 +1,26 @@
-const { app, store } = require('../app')
-const mongoose = require('mongoose')
 const supertest = require('supertest')
 
-const { reloadAdminUser } = require('./helpers/users_helper')
+const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('./helpers/test_helper')
+const { reloadAdminUser, clearUsers } = require('./helpers/users_helper')
 
 let api
 let server
 let testUser
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-  await new Promise((resolve, reject) => {
-    server = app.listen(5000, (err) => {
-      if (err) return reject(err)
-      resolve()
-    })
-  })
+  server = await handleTestConnection()
 
-  //Clear session store
-  await new Promise((resolve, reject) => store.clear((err) => {
-    if (err) return reject(err)
-
-    resolve()
-  }))
-
-  //do not persist requests/cookies
   api = supertest(server)
 })
 
 beforeEach(async () => {
+  await clearSessionStore()
+  await clearUsers()
   testUser = await reloadAdminUser()
 })
 
 afterAll(async () => {
-  mongoose.connection.close()
-  await new Promise((resolve, reject) => server.close((err) => {
-    if (err) return reject(err)
-
-    resolve()
-  }))
-  await store.client.close()
+  await handleTestDisconnection(server)
 })
 
 describe('Login', () => {
