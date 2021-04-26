@@ -91,6 +91,7 @@ describe('Create user with admin user logged in', () => {
       expect(response.body.name).toEqual(newUser.name)
       expect(response.body.email).toEqual(newUser.email)
       expect(response.body.role).toEqual(newUser.role)
+      expect(response.body.createdBy).toEqual(testAdminUser.email)
       expect(userAmountAfter).toEqual(userAmountBefore + 1)
     })
 
@@ -108,6 +109,7 @@ describe('Create user with admin user logged in', () => {
       expect(response.body.name).toEqual(newUser.name)
       expect(response.body.email).toEqual(newUser.email)
       expect(response.body.role).toEqual('user')
+      expect(response.body.createdBy).toEqual(testAdminUser.email)
       expect(userAmountAfter).toEqual(userAmountBefore + 1)
     })
 
@@ -125,6 +127,7 @@ describe('Create user with admin user logged in', () => {
       expect(response.body.name).toEqual(newUser.name)
       expect(response.body.email).toEqual(newUser.email)
       expect(response.body.role).toEqual(newUser.role)
+      expect(response.body.createdBy).toEqual(testAdminUser.email)
       expect(response.body.passwordHash).toBeUndefined()
       expect(userAmountAfter).toEqual(userAmountBefore + 1)
     })
@@ -188,3 +191,22 @@ describe('Create user with admin user logged in', () => {
     })
   })
 })
+
+//TODO: store who created a user (who invited them to the system)
+
+//TODO: send invitation when creating user
+// - send email with link with token.
+
+//TODO: finalize user creation
+// - users need to accept the invitation by clicking the link in email and creating a new password when prompted
+// - same system could be used to "remember password"
+
+//TODO: only users that have finalized user creation can login
+
+//TODO: for a created user thar is not finalized, it should be possible to resend invitation at any point
+// - it should invalidate the previous existing invitation
+// - not possible if the user is finalized
+
+//TODO: users to be able to recover their password
+// - when logged out, by providing a valid email, they will receive a link to generate a new password
+// - from profile page, by pressing a button they can send the same email

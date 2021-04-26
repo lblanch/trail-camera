@@ -5,14 +5,16 @@ const testAdminUser = {
   name: 'Person1',
   email: 'person1@email.com',
   password: '123456',
-  role: 'admin'
+  role: 'admin',
+  createdBy: '-'
 }
 
 const testBasicUser = {
   name: 'Basic',
   email: 'basic.user@email.com',
   password: '123456',
-  role: 'user'
+  role: 'user',
+  createdBy: testAdminUser.email
 }
 
 const clearUsers = async () => {
@@ -26,7 +28,8 @@ const reloadAdminUser = async () => {
     name: testAdminUser.name,
     email: testAdminUser.email,
     passwordHash: passHash,
-    role: testAdminUser.role
+    role: testAdminUser.role,
+    createdBy: testAdminUser.createdBy
   })
 
   await UserObject.save()
@@ -41,7 +44,8 @@ const reloadBasicUser = async () => {
     name: testBasicUser.name,
     email: testBasicUser.email,
     passwordHash: passHash,
-    role: testBasicUser.role
+    role: testBasicUser.role,
+    createdBy: testBasicUser.createdBy
   })
 
   await UserObject.save()

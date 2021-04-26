@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt')
 
 const User = require('../models/user')
 
-const saltRounds = 10
+const saltRounds = 12
 
 const hashPassword = async (password) => {
   return await bcrypt.hash(password, saltRounds)
@@ -19,7 +19,7 @@ const getSessionUser = async (req) => {
     throw newError
   }
 
-  const user = await User.findById(req.session.user)
+  const user = await (await User.findById(req.session.user).select({ passwordHash: 0 }))
 
   if (!user) {
     const newError = new Error('Invalid user session')

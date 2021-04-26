@@ -21,8 +21,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'user',
     required: true
-  }
-})
+  },
+  createdBy: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    default: 'invitation sent',
+    required: true
+  },
+}, { timestamps: true })
 
 userSchema.plugin(uniqueValidator)
 
