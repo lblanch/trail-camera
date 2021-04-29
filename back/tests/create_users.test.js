@@ -2,8 +2,9 @@
 const supertest = require('supertest')
 
 const User = require('../models/user')
+const Token = require('../models/token')
 const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('./helpers/test_helper')
-const { reloadAdminUser, reloadBasicUser, clearUsers } = require('./helpers/users_helper')
+const { reloadAdminUser, reloadBasicUser, clearUsers, clearTokens } = require('./helpers/users_helper')
 
 let agentAdmin, agentBasic, agentLogout
 let server
@@ -27,6 +28,7 @@ beforeAll(async () => {
 beforeEach(async () => {
   await clearSessionStore()
   await clearUsers()
+  await clearTokens()
   testAdminUser = await reloadAdminUser()
 })
 
@@ -77,6 +79,34 @@ describe('Create user with admin user logged in', () => {
   })
 
   describe('sucessful user creation', () => {
+    test('when passed valid data creates invitation token and returns status 201', async () => {
+      const tokenAmountBefore = await Token.estimatedDocumentCount()
+
+      const tokenDate = new Date()
+      tokenDate.setDate(tokenDate.getDate() + 7)
+
+      const response = await agentAdmin
+        .post('/api/users')
+        .send(newUser)
+        .expect(201)
+        .expect('Content-type', /application\/json/)
+
+      const tokenAmountAfter = await Token.estimatedDocumentCount()
+
+      const invitationToken = await Token.findOne({ userId: response.body._id })
+
+      expect(tokenAmountAfter).toEqual(tokenAmountBefore + 1)
+      expect(invitationToken).not.toBeNull()
+      expect(invitationToken.expireAt.getUTCDay()).toEqual(tokenDate.getUTCDay())
+      expect(invitationToken.expireAt.getUTCMonth()).toEqual(tokenDate.getUTCMonth())
+      expect(invitationToken.expireAt.getUTCFullYear()).toEqual(tokenDate.getUTCFullYear())
+      expect(invitationToken.type).toEqual('invitation')
+      //SHA256 returns 256 bits. Base64 encodes 6 bits into one char. 256/6 = 42.6 => 43
+      expect(invitationToken.token).toHaveLength(43)
+      //Returned token should be url compatible (enconded with base64url)
+      expect(invitationToken.token).toMatch(/^[A-Za-z0-9_-]+$/)
+    })
+
     test('when passed valid data returns valid user and status 201', async () => {
       const userAmountBefore = await User.estimatedDocumentCount()
       const response = await agentAdmin
@@ -192,7 +222,8 @@ describe('Create user with admin user logged in', () => {
   })
 })
 
-//TODO: store who created a user (who invited them to the system)
+//TODO: check that if we pass existing fields when creating (createdBy, createdAt, updatedAt)
+//they are sanitized (similarly as with password hash)
 
 //TODO: send invitation when creating user
 // - send email with link with token.

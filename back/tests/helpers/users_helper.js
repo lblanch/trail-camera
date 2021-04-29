@@ -1,3 +1,4 @@
+const Token = require('../../models/token')
 const User = require('../../models/user')
 const { hashPassword } = require('../../utils/authentication')
 
@@ -19,6 +20,10 @@ const testBasicUser = {
 
 const clearUsers = async () => {
   await User.deleteMany({})
+}
+
+const clearTokens = async () => {
+  await Token.deleteMany({})
 }
 
 const reloadAdminUser = async () => {
@@ -53,4 +58,4 @@ const reloadBasicUser = async () => {
   return { ...testBasicUser, id: UserObject._id }
 }
 
-module.exports = { clearUsers, reloadAdminUser, reloadBasicUser }
+module.exports = { clearUsers, clearTokens, reloadAdminUser, reloadBasicUser }

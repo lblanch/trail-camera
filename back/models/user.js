@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    default: 'invitation sent',
+    default: 'pending',
     required: true
   },
 }, { timestamps: true })

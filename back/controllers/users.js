@@ -1,7 +1,8 @@
 const usersRouter = require('express').Router()
 
+const token = require('../models/token')
 const User = require('../models/user')
-const { getSessionUser } = require('../utils/authentication')
+const { getSessionUser, createToken } = require('../utils/authentication')
 
 usersRouter.post('/', async (request, response) => {
   const user = await getSessionUser(request)
@@ -12,10 +13,25 @@ usersRouter.post('/', async (request, response) => {
     throw newError
   }
 
+  //Sanitize input: delete possible passwordHash
   delete request.body.passwordHash
 
   const newUser = new User({ ...request.body, createdBy: user.email })
   const savedUser = await newUser.save()
+
+  const tokenExpiryDate = new Date()
+  tokenExpiryDate.setDate(tokenExpiryDate.getDate() + 7)
+
+  const tokenHash = await createToken()
+
+  const newToken = new token(
+    {
+      expireAt: tokenExpiryDate,
+      token: tokenHash,
+      type: 'invitation',
+      userId: savedUser._id
+    })
+  await newToken.save()
 
   response.status(201).send(savedUser)
 })

@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt')
+const crypto = require('crypto')
 
 const User = require('../models/user')
 
@@ -30,4 +31,13 @@ const getSessionUser = async (req) => {
   return user
 }
 
-module.exports = { comparePasswordHash, hashPassword, getSessionUser }
+const createToken = async () => {
+  const randomBuffer = await crypto.randomBytes(16)
+
+  const hash = crypto.createHash('sha256')
+
+  hash.update(randomBuffer)
+  return hash.digest('base64url')
+}
+
+module.exports = { comparePasswordHash, hashPassword, getSessionUser, createToken }
