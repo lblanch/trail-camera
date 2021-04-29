@@ -161,6 +161,30 @@ describe('Create user with admin user logged in', () => {
       expect(response.body.passwordHash).toBeUndefined()
       expect(userAmountAfter).toEqual(userAmountBefore + 1)
     })
+
+    test('when passed createdBy, createdAt or updatedAt fields they are ignored and returns valid user and status 201', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const wrongCreatedBy = 'wrongEmail@wrong.email'
+      const wrongCreatedUpdatedAt = new Date()
+      wrongCreatedUpdatedAt.setDate(wrongCreatedUpdatedAt.getDate() - 7)
+
+      const response = await agentAdmin
+        .post('/api/users')
+        .send({ ...newUser, createdBy: wrongCreatedBy, createdAt: wrongCreatedUpdatedAt, updatedAt: wrongCreatedUpdatedAt })
+        .expect(201)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(response.body._id).toBeDefined()
+      expect(response.body.name).toEqual(newUser.name)
+      expect(response.body.email).toEqual(newUser.email)
+      expect(response.body.role).toEqual(newUser.role)
+      expect(response.body.createdBy).not.toEqual(wrongCreatedBy)
+      expect(response.body.createdAt).not.toEqual(wrongCreatedUpdatedAt.toJSON())
+      expect(response.body.updatedAt).not.toEqual(wrongCreatedUpdatedAt.toJSON())
+      expect(userAmountAfter).toEqual(userAmountBefore + 1)
+    })
   })
 
   describe('unsuccessful user creation', () => {
@@ -221,9 +245,6 @@ describe('Create user with admin user logged in', () => {
     })
   })
 })
-
-//TODO: check that if we pass existing fields when creating (createdBy, createdAt, updatedAt)
-//they are sanitized (similarly as with password hash)
 
 //TODO: send invitation when creating user
 // - send email with link with token.

@@ -13,10 +13,14 @@ usersRouter.post('/', async (request, response) => {
     throw newError
   }
 
-  //Sanitize input: delete possible passwordHash
-  delete request.body.passwordHash
+  const sanitizedUser = {
+    name: request.body.name,
+    email: request.body.email,
+    role: request.body.role,
+    createdBy: user.email
+  }
 
-  const newUser = new User({ ...request.body, createdBy: user.email })
+  const newUser = new User(sanitizedUser)
   const savedUser = await newUser.save()
 
   const tokenExpiryDate = new Date()
