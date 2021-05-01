@@ -1,13 +1,11 @@
 const usersRouter = require('express').Router()
 
-const token = require('../models/token')
-const User = require('../models/user')
-const { getSessionUser, createToken } = require('../utils/authentication')
+const { createNewUser, createInvitationToken, getAllUsers } = require('../services/users')
+const { logInFromSession } = require('../utils/middleware')
 
-usersRouter.post('/', async (request, response) => {
-  const user = await getSessionUser(request)
 
-  if (user.role !== 'admin') {
+usersRouter.post('/', logInFromSession, async (request, response) => {
+  if (request.trailcamUser.role !== 'admin') {
     const newError = new Error('Logged in user has wrong role')
     newError.statusCode = 403
     throw newError
@@ -17,39 +15,24 @@ usersRouter.post('/', async (request, response) => {
     name: request.body.name,
     email: request.body.email,
     role: request.body.role,
-    createdBy: user.email
+    createdBy: request.trailcamUser.email
   }
 
-  const newUser = new User(sanitizedUser)
-  const savedUser = await newUser.save()
+  const savedUser = await createNewUser(sanitizedUser)
 
-  const tokenExpiryDate = new Date()
-  tokenExpiryDate.setDate(tokenExpiryDate.getDate() + 7)
-
-  const tokenHash = await createToken()
-
-  const newToken = new token(
-    {
-      expireAt: tokenExpiryDate,
-      token: tokenHash,
-      type: 'invitation',
-      userId: savedUser._id
-    })
-  await newToken.save()
+  await createInvitationToken(savedUser._id)
 
   response.status(201).send(savedUser)
 })
 
-usersRouter.get('/', async (request, response) => {
-  const user = await getSessionUser(request)
-
-  if (user.role !== 'admin') {
+usersRouter.get('/', logInFromSession, async (request, response) => {
+  if (request.trailcamUser.role !== 'admin') {
     const newError = new Error('Logged in user has wrong role')
     newError.statusCode = 403
     throw newError
   }
 
-  const users = await User.find({}).select({ passwordHash: 0, __v: 0 })
+  const users = await getAllUsers()
 
   response.status(200).send(users)
 })

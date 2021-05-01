@@ -58,4 +58,8 @@ const reloadBasicUser = async () => {
   return { ...testBasicUser, id: UserObject._id }
 }
 
+//TODO
+/*const inviteNewUser = async () => {
+}*/
+
 module.exports = { clearUsers, clearTokens, reloadAdminUser, reloadBasicUser }

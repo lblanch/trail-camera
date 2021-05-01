@@ -1,3 +1,5 @@
+const { getSessionUser } = require('../services/users')
+
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (error, request, response, next) => {
   console.error('[Error handler] ', error.name, ': ', error.message)
@@ -15,6 +17,25 @@ const errorHandler = (error, request, response, next) => {
   } else {
     response.status(500).send({ error: error.message })
   }
+}
+
+const logInFromSession = async (request, response, next) => {
+  if (!request.session.user) {
+    const newError = new Error('No logged in user')
+    newError.statusCode = 401
+    throw newError
+  }
+
+  const user = await getSessionUser(request.session.user)
+
+  if (!user) {
+    const newError = new Error('Invalid user session')
+    newError.statusCode = 401
+    throw newError
+  }
+
+  request.trailcamUser =  user
+  next()
 }
 
 const logger = (request, response, next) => {
@@ -41,4 +62,4 @@ const logger = (request, response, next) => {
   next()
 }
 
-module.exports = { logger, errorHandler }
+module.exports = { logger, errorHandler, logInFromSession }

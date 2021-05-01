@@ -1,10 +1,10 @@
 //require('leaked-handles')
 const supertest = require('supertest')
 
-const User = require('../models/user')
-const Token = require('../models/token')
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('./helpers/test_helper')
-const { reloadAdminUser, reloadBasicUser, clearUsers, clearTokens } = require('./helpers/users_helper')
+const User = require('../../models/user')
+const Token = require('../../models/token')
+const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/test_helper')
+const { reloadAdminUser, reloadBasicUser, clearUsers, clearTokens } = require('../helpers/users_helper')
 
 let agentAdmin, agentBasic, agentLogout
 let server
@@ -252,8 +252,6 @@ describe('Create user with admin user logged in', () => {
 //TODO: finalize user creation
 // - users need to accept the invitation by clicking the link in email and creating a new password when prompted
 // - same system could be used to "remember password"
-
-//TODO: only users that have finalized user creation can login
 
 //TODO: for a created user thar is not finalized, it should be possible to resend invitation at any point
 // - it should invalidate the previous existing invitation

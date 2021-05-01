@@ -1,7 +1,7 @@
 const supertest = require('supertest')
 
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('./helpers/test_helper')
-const { reloadAdminUser, clearUsers } = require('./helpers/users_helper')
+const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/test_helper')
+const { reloadAdminUser, clearUsers } = require('../helpers/users_helper')
 
 let api
 let server
@@ -102,5 +102,13 @@ describe('Login', () => {
       expect(error.headers['set-cookie']).toBeUndefined()
       expect(error.body).toHaveProperty('error')
     })
+
+    /*test.only('when user has not finalized creation tries to login returns status 400 and error message', async () => {
+      //create new user (sends invitation)
+      const newUser = await api
+        .post()
+    })*/
   })
 })
+
+//TODO: only users that have finalized user creation can login
