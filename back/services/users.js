@@ -32,4 +32,8 @@ const getAllUsers = async () => {
   return await User.find({}).select({ passwordHash: 0, __v: 0 })
 }
 
-module.exports = { createNewUser, createInvitationToken, getSessionUser, getAllUsers }
+const getLoginUserByEmail = async (email) => {
+  return await User.findOne({ email: email }).select({ passwordHash: 1, email: 1, name: 1 })
+}
+
+module.exports = { createNewUser, createInvitationToken, getSessionUser, getAllUsers, getLoginUserByEmail }

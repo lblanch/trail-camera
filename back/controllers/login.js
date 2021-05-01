@@ -1,7 +1,7 @@
 const loginRouter = require('express').Router()
 
 const { comparePasswordHash } = require('../utils/authentication')
-const User = require('../models/user')
+const { getLoginUserByEmail } = require('../services/users')
 
 loginRouter.post('/', async (request, response) => {
   if (request.session.user) {
@@ -10,7 +10,8 @@ loginRouter.post('/', async (request, response) => {
     throw newError
   }
 
-  const user = await User.findOne({ email: request.body.email })
+  const user = await getLoginUserByEmail(request.body.email)
+
   const isPasswordCorrect = (user === null) || !request.body.password ?
     false :
     await comparePasswordHash(request.body.password, user.passwordHash)
