@@ -24,7 +24,6 @@ const createInvitationToken = async (savedUserId) => {
 }
 
 const getSessionUser = async (userId) => {
-  //return await (await User.findById(userId).select({ passwordHash: 0, __v: 0 }))
   return await User.findById(userId).select({ passwordHash: 0, __v: 0 })
 }
 

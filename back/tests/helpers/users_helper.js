@@ -1,5 +1,6 @@
 const Token = require('../../models/token')
 const User = require('../../models/user')
+const { createNewUser } = require('../../services/users')
 const { hashPassword } = require('../../utils/authentication')
 
 const testAdminUser = {
@@ -27,35 +28,30 @@ const clearTokens = async () => {
 }
 
 const reloadAdminUser = async () => {
-  const passHash = await hashPassword(testAdminUser.password)
-
-  const UserObject = new User({
+  const sanitizedUser = {
     name: testAdminUser.name,
     email: testAdminUser.email,
-    passwordHash: passHash,
     role: testAdminUser.role,
+    passwordHash: await hashPassword(testAdminUser.password),
     createdBy: testAdminUser.createdBy
-  })
+  }
+  const newUser = await createNewUser(sanitizedUser)
 
-  await UserObject.save()
-
-  return { ...testAdminUser, id: UserObject._id }
+  return { ...testAdminUser, id: newUser._id }
 }
 
 const reloadBasicUser = async () => {
-  const passHash = await hashPassword(testBasicUser.password)
-
-  const UserObject = new User({
+  const sanitizedUser = {
     name: testBasicUser.name,
     email: testBasicUser.email,
-    passwordHash: passHash,
     role: testBasicUser.role,
+    passwordHash: await hashPassword(testBasicUser.password),
     createdBy: testBasicUser.createdBy
-  })
+  }
 
-  await UserObject.save()
+  const newUser = await createNewUser(sanitizedUser)
 
-  return { ...testBasicUser, id: UserObject._id }
+  return { ...testBasicUser, id: newUser._id }
 }
 
 //TODO

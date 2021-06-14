@@ -3,7 +3,7 @@ const supertest = require('supertest')
 
 const User = require('../../models/user')
 const Token = require('../../models/token')
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/test_helper')
+const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/connection_helper')
 const { reloadAdminUser, reloadBasicUser, clearUsers, clearTokens } = require('../helpers/users_helper')
 
 let agentAdmin, agentBasic, agentLogout

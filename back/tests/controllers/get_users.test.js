@@ -1,6 +1,6 @@
 const supertest = require('supertest')
 
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/test_helper')
+const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/connection_helper')
 const { reloadAdminUser, reloadBasicUser, clearUsers } = require('../helpers/users_helper')
 
 let agentAdmin, agentBasic, agentLogout
