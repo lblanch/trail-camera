@@ -1,10 +1,17 @@
 const User = require('../models/user')
 const Token = require('../models/token')
-const { createTokenHash } = require('../utils/authentication')
+const { createTokenHash, hashPassword } = require('../utils/authentication')
 
 const createNewUser = async (sanitizedUser) => {
   const newUser = new User(sanitizedUser)
   return await newUser.save()
+}
+
+const updateUserPassword = async (userId, newPassword) => {
+  const userToBeUpdated = await User.findById(userId)
+  userToBeUpdated.passwordHash = await hashPassword(newPassword)
+
+  await userToBeUpdated.save()
 }
 
 const createInvitationToken = async (savedUserId) => {
@@ -20,7 +27,15 @@ const createInvitationToken = async (savedUserId) => {
       type: 'invitation',
       userId: savedUserId
     })
-  await newToken.save()
+  return await newToken.save()
+}
+
+const deleteInvitationToken = async (tokenId) => {
+  await Token.deleteOne({ _id: tokenId })
+}
+
+const getInvitationToken = async (token) => {
+  return await Token.findOne({ token: token, type: 'invitation' }).select({ userId: 1 })
 }
 
 const getSessionUser = async (userId) => {
@@ -35,4 +50,13 @@ const getLoginUserByEmail = async (email) => {
   return await User.findOne({ email: email }).select({ passwordHash: 1, email: 1, name: 1 })
 }
 
-module.exports = { createNewUser, createInvitationToken, getSessionUser, getAllUsers, getLoginUserByEmail }
+module.exports = {
+  createNewUser,
+  updateUserPassword,
+  createInvitationToken,
+  deleteInvitationToken,
+  getSessionUser,
+  getAllUsers,
+  getLoginUserByEmail,
+  getInvitationToken
+}

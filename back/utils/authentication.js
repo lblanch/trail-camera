@@ -20,4 +20,23 @@ const createTokenHash = async () => {
   return hash.digest('base64url')
 }
 
-module.exports = { comparePasswordHash, hashPassword, createTokenHash }
+const validatePassword = (password) => {
+  if(password.length < 10) {
+    const newError = new Error('Password should be at least 10 characters long')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  // based on https://github.com/sindresorhus/non-ascii
+  const nonAscii = /[^\u0020-\u007F]+/
+
+  if(nonAscii.test(password)) {
+    const newError = new Error('Password can only contain ASCII characters')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  return true
+}
+
+module.exports = { comparePasswordHash, hashPassword, createTokenHash, validatePassword }

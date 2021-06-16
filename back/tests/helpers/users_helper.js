@@ -1,12 +1,12 @@
 const Token = require('../../models/token')
 const User = require('../../models/user')
-const { createNewUser } = require('../../services/users')
+const { createNewUser, createInvitationToken } = require('../../services/users')
 const { hashPassword } = require('../../utils/authentication')
 
 const testAdminUser = {
   name: 'Person1',
   email: 'person1@email.com',
-  password: '123456',
+  password: '123456789101112',
   role: 'admin',
   createdBy: '-'
 }
@@ -14,7 +14,15 @@ const testAdminUser = {
 const testBasicUser = {
   name: 'Basic',
   email: 'basic.user@email.com',
-  password: '123456',
+  password: '123456789101112',
+  role: 'user',
+  createdBy: testAdminUser.email
+}
+
+const testInvitedUser = {
+  name: 'Invited',
+  email: 'invited.user@email.com',
+  password: '123456789101112',
   role: 'user',
   createdBy: testAdminUser.email
 }
@@ -54,8 +62,28 @@ const reloadBasicUser = async () => {
   return { ...testBasicUser, id: newUser._id }
 }
 
-//TODO
-/*const inviteNewUser = async () => {
-}*/
+const reloadInvitedUser = async () => {
+  const sanitizedUser = {
+    name: testInvitedUser.name,
+    email: testInvitedUser.email,
+    role: testInvitedUser.role,
+    createdBy: testInvitedUser.createdBy
+  }
 
-module.exports = { clearUsers, clearTokens, reloadAdminUser, reloadBasicUser }
+  const newUser = await createNewUser(sanitizedUser)
+
+  return { ...testInvitedUser, id: newUser._id }
+}
+
+const reloadInvitationToken = async (userId) => {
+  return await createInvitationToken(userId)
+}
+
+module.exports = {
+  clearUsers,
+  clearTokens,
+  reloadAdminUser,
+  reloadBasicUser,
+  reloadInvitedUser,
+  reloadInvitationToken
+}
