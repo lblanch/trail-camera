@@ -8,6 +8,7 @@ const { logger, errorHandler } = require('./utils/middleware')
 
 const loginRouter = require('./controllers/login')
 const usersRouter = require('./controllers/users')
+const recordingsRouter = require('./controllers/recordings')
 
 const sessionMaxAge = 1000 * 60 * 60 * 24 * 30 //30 days in milliseconds
 const dbUri = process.env.NODE_ENV === 'test' ? process.env.TEST_MONGODB_URI : process.env.MONGODB_URI
@@ -51,6 +52,7 @@ app.use(logger)
 
 app.use('/api/login', loginRouter)
 app.use('/api/users', usersRouter)
+app.use('/api/recordings', recordingsRouter)
 
 app.use(errorHandler)
 

@@ -74,3 +74,5 @@ test('Get all existing users as admin returns status 200 and the user\'s relevan
   expect(users.body[0]).toHaveProperty('createdBy')
   expect(users.body[0]).not.toHaveProperty('passwordHash')
 })
+
+//TODO: pagination for users
