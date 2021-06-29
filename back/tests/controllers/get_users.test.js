@@ -75,4 +75,5 @@ test('Get all existing users as admin returns status 200 and the user\'s relevan
   expect(users.body[0]).not.toHaveProperty('passwordHash')
 })
 
-//TODO: pagination for users
+//TODO: pagination for users <-- not necessary, small amount of users
+//TODO: what if the user list is empty? <-- should not happen as at least one user exists, and needs to be logged in to see this.

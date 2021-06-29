@@ -1,7 +1,7 @@
 const Recording = require('../models/recording')
 
-const getAllRecordings = async () => {
-  return await Recording.find({})
+const getRecordingsByPage = async (pageNumber) => {
+  return await Recording.findOne({}, null, { sort: { date: -1, earliestTime: -1 }, skip: pageNumber })
 }
 
-module.exports = { getAllRecordings }
+module.exports = { getRecordingsByPage }
