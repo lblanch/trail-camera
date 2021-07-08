@@ -7,6 +7,7 @@
     "start": "NODE_ENV=production node index.js",
     "start:test": "NODE_ENV=test node index.js",
     "email-parser": "node email-parser.js",
+    "email-parser:test": "NODE_ENV=test node email-parser.js",
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test jest --verbose --runInBand --detectOpenHandles",
     "lint": "eslint ."
@@ -15,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.20.0",
     "bcrypt": "^5.0.1",
     "connect-mongodb-session": "^2.4.1",
     "dotenv": "^8.2.0",

@@ -16,6 +16,10 @@ const recordingSchema = new mongoose.Schema({
     required: true
   },
   recordings: [{
+    mediaDate: {
+      type: Date,
+      required: true
+    },
     emailDeliveryDate: {
       type: Date,
       required: true
