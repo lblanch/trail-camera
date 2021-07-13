@@ -1,8 +1,9 @@
 const { getSessionUser } = require('../services/users')
+const logger = require('./logger')
 
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (error, request, response, next) => {
-  console.error('[Error handler] ', error.name, ': ', error.message)
+  logger.error('[Error handler] ', error.name, ': ', error.message)
 
   if (error.name === 'ValidationError') {
     error.statusCode = 400
@@ -38,7 +39,7 @@ const logInFromSession = async (request, response, next) => {
   next()
 }
 
-const logger = (request, response, next) => {
+const requestLogger = (request, response, next) => {
   let logMessage = `${request.method} ${request.path}`
   const paramsString = JSON.stringify(request.params)
   if (paramsString.length > 2) {
@@ -51,15 +52,15 @@ const logger = (request, response, next) => {
 
   response.on('close', () => {
     logMessage = logMessage.concat(' - ', response.statusCode)
-    console.log(logMessage)
+    logger.info(logMessage)
   })
 
   response.on('aborted', () => {
     logMessage= logMessage.concat(' - ', response.statusCode, ' ABORTED')
-    console.error(logMessage)
+    logger.error(logMessage)
   })
 
   next()
 }
 
-module.exports = { logger, errorHandler, logInFromSession }
+module.exports = { requestLogger, errorHandler, logInFromSession }

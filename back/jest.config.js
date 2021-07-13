@@ -1,3 +1,12 @@
 module.exports = {
-  testEnvironment: 'node'
+  testEnvironment: 'node',
+  collectCoverage: true,
+  collectCoverageFrom: [
+    '**/*.js',
+    '!*.config.js',
+    '!node_modules/**',
+    '!.eslintrc.js',
+    '!coverage/**',
+    '!tests/**'
+  ]
 }

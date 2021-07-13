@@ -23,6 +23,7 @@
 jsconfig.json
 /docs/credentials.csv
 /back/requests
+/back/coverage
 
 npm-debug.log*
 yarn-debug.log*

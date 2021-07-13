@@ -4,7 +4,8 @@ const MongoDBStore = require('connect-mongodb-session')(session)
 require('express-async-errors')
 require('dotenv').config()
 
-const { logger, errorHandler } = require('./utils/middleware')
+const { requestLogger, errorHandler } = require('./utils/middleware')
+const logger = require('./utils/logger')
 
 const loginRouter = require('./controllers/login')
 const usersRouter = require('./controllers/users')
@@ -24,11 +25,11 @@ const store = new MongoDBStore({
 })
 
 store.on('error', (error) => {
-  console.error('STORE ERROR!! ', error.toString())
+  logger.error('STORE ERROR!! ', error.toString())
 })
 
 store.on('connected', () => {
-  console.log('MONGODBSTORE connected')
+  logger.info('MONGODBSTORE connected')
 })
 
 const app = express()
@@ -48,7 +49,7 @@ app.use(session({
   }
 }))
 
-app.use(logger)
+app.use(requestLogger)
 
 app.use('/api/login', loginRouter)
 app.use('/api/users', usersRouter)

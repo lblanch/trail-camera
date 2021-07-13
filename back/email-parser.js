@@ -1,20 +1,34 @@
-//TODO: recheck error handling
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
 const { ImapFlow } = require('imapflow')
 const simpleParser = require('mailparser').simpleParser
-const pino = require('pino')()
+const pino = require('pino')
 require('dotenv').config()
 const mongoose = require('mongoose')
 
 const { upsertRecording } = require('./services/recordings')
 const logger = require('./utils/logger')
 
-const LOG_TAG = 'email-parser: '
+const LOG_TAG = 'email-parser:'
+const MAX_RETRY_ATTEMPTS = 100
 
-//avoid ImapFlow log messages in test env
-//pino.level = 'silent'
+let retryAttempts = 0
 
-const client = new ImapFlow({
+//avoid ImapFlow log messages in test and prod env
+let pinoOptions
+if (process.env.NODE_ENV === 'development') {
+  pinoOptions = {
+    prettyPrint: {
+      singleLine: true,
+      ignore: 'pid,hostname,time',
+      messageFormat: '{src} - {msg} - {error}'
+    },
+    level: 'debug'
+  }
+} else {
+  pinoOptions = { level: 'silent' }
+}
+
+const imapOptions = {
   host: process.env.IMAP_HOST,
   port: 993,
   secure: true,
@@ -22,48 +36,34 @@ const client = new ImapFlow({
     user: process.env.IMAP_USER,
     pass: process.env.IMAP_PASSWORD
   },
-  logger: pino
-})
+  logger: pino(pinoOptions)
+}
 
-// Create an Amazon S3 service client object.
-const s3Client = new S3Client({ region: process.env.AWS_REGION })
+const createNewImapClient = () => {
+  let newClient = new ImapFlow(imapOptions)
+  newClient.on('close', onClose)
+  newClient.on('error', onError)
+  newClient.on('exists', onExists)
+  return newClient
+}
 
-let lock
-const dbUri = process.env.NODE_ENV === 'test' ? process.env.TEST_MONGODB_URI : process.env.MONGODB_URI
-const dbOptions = { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
+const onError = error => logger.error(LOG_TAG, 'error!', error)
 
-const run = async () => {
-  try {
-    // Wait until client connects and authorizes
-    await client.connect()
-    logger.info(LOG_TAG, 'connected to email server')
-  } catch (error) {
-    //TODO: retry
-    return logger.error(LOG_TAG, 'error connecting to email server', error.message)
+const onClose = async () => {
+  logger.info(LOG_TAG, 'connection closed')
+  if (!client.usable) {
+    logger.info(LOG_TAG, 'client not usable')
+    client = createNewImapClient()
   }
-
-  try {
-    await mongoose.connect(dbUri, dbOptions)
-    logger.info(LOG_TAG, 'connected to DB server')
-  } catch(error) {
-    //TODO: retry
-    logger.error(LOG_TAG, 'error connecting to MongoDB', error.message)
-    return await client.logout()
-  }
-
-  try {
-    // Select and lock a mailbox. Throws if mailbox does not exist
-    lock = await client.getMailboxLock('INBOX')
-  } catch (error) {
-    //TODO: retry
-    logger.error(LOG_TAG, 'error when getting the inbox', error.message)
-    lock.release()
-    await client.logout()
-    mongoose.connection.close()
+  const resultImap = await connectImapClientAndSelectMailbox()
+  if (resultImap) {
+    logger.info(LOG_TAG, 'all good')
+  } else {
+    logger.info(LOG_TAG, 'imap failed, trying again.')
   }
 }
 
-client.on('exists', async data => {
+const onExists = async data => {
   logger.info(LOG_TAG, 'email received!')
   const emailCount = data.count
   const emailPrevCount = data.prevCount
@@ -75,33 +75,71 @@ client.on('exists', async data => {
       logger.error(LOG_TAG, `error while parsing email ${emailId - emailPrevCount} of ${emailCount - emailPrevCount}`, error.message)
     }
   }
-})
+}
 
-client.on('close', () => {
-  //TODO: reconnect
-  lock.release()
-  logger.info(LOG_TAG, 'email-parser: connection closed')
-})
+let client = createNewImapClient()
 
-//TODO: probably below can be deleted
-/*mongoose.connection.on('error', err => {
-  logger.error(LOG_TAG, 'error with mongoDB connection', err.message)
-})*/
+// Create an Amazon S3 service client object.
+const s3Client = new S3Client({ region: process.env.AWS_REGION })
 
-/*const connectMongoDB = async (reconnect = false) => {
-  if (reconnect && attemptsConnectDB >= RETRY_ATTEMPTS) {
-    throw new Error('Reached maximum amount of attempts to re-connect to MongoDB.')
+const dbUri = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI : process.env.TEST_MONGODB_URI
+const dbOptions = { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
+
+const run = async () => {
+  const resultMongo = await connectMongoDB()
+  if  (resultMongo) {
+    const resultImap = await connectImapClientAndSelectMailbox()
+    if (resultImap) {
+      logger.info(LOG_TAG, 'all good')
+    } else {
+      logger.info(LOG_TAG, 'imap failed')
+    }
   } else {
-    if (reconnect) {
-      attemptsConnectDB++
-    }
-    try {
-      await mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-    } catch (error) {
-      await connectMongoDB(true)
-    }
+    logger.info(LOG_TAG, 'mongo failed')
   }
-}*/
+}
+
+const connectImapClientAndSelectMailbox = async () => {
+  retryAttempts++
+  logger.info(LOG_TAG, 'trying to connect to email server, times:', retryAttempts)
+  try {
+    // Wait until client connects and authorizes
+    await client.connect()
+    logger.info(LOG_TAG, 'connected to email server')
+    retryAttempts = 0
+  } catch (error) {
+    logger.error(LOG_TAG, 'error connecting to email server', error.message)
+    if (retryAttempts < MAX_RETRY_ATTEMPTS) {
+      setTimeout(connectImapClientAndSelectMailbox, retryAttempts * 1000)
+    } else {
+      mongoose.connection.close()
+      throw new Error('Too many attempts to connect to email server.')
+    }
+    return false
+  }
+
+  try {
+    // Select and lock a mailbox. Throws if mailbox does not exist
+    await client.getMailboxLock('INBOX')
+    return true
+  } catch (error) {
+    logger.error(LOG_TAG, 'error when getting the inbox', error.message)
+    await client.logout()
+    mongoose.connection.close()
+    return false
+  }
+}
+
+const connectMongoDB = async () => {
+  try {
+    await mongoose.connect(dbUri, dbOptions)
+    logger.info(LOG_TAG, 'connected to DB server')
+    return true
+  } catch(error) {
+    logger.error(LOG_TAG, 'error connecting to MongoDB', error.message)
+    return false
+  }
+}
 
 const parseEmail = async (emailId) => {
   const downloadedEmail = await client.download(emailId, null)
@@ -128,11 +166,11 @@ const parseEmail = async (emailId) => {
       const timeSplit = emailInfoJson.time.split(':')
       newCameraInput.mediaDate = new Date(`20${dateSplit[2]}`, dateSplit[1]-1, dateSplit[0], timeSplit[0], timeSplit[1], timeSplit[2])
     } else {
-      logger.info(LOG_TAG, 'email-parser: email body does not have date/time, using email delivery date')
+      logger.info(LOG_TAG, 'email body does not have date/time, using email delivery date')
       newCameraInput.mediaDate = newCameraInput.emailDeliveryDate
     }
   } else {
-    logger.info(LOG_TAG, 'email-parser: email body does not have any text, using email delivery date')
+    logger.info(LOG_TAG, 'email body does not have any text, using email delivery date')
     newCameraInput.mediaDate = newCameraInput.emailDeliveryDate
   }
 
@@ -145,7 +183,6 @@ const parseEmail = async (emailId) => {
   }
 
   // Upload file to specified bucket.
-  //TODO: retry?
   await s3Client.send(new PutObjectCommand(uploadParams))
 
   newCameraInput.mediaType = parsedEmail.attachments[0].contentType
@@ -154,7 +191,6 @@ const parseEmail = async (emailId) => {
   newCameraInput.mediaURL = mediaUrl
 
   //Upsert to mongoDB
-  //TODO: retry?
   await upsertRecording(newCameraInput)
 }
 

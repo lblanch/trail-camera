@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 
-//TODO: buckets by month instead of day?
 const recordingSchema = new mongoose.Schema({
   date: {
     type: Date,
