@@ -184,6 +184,7 @@ const parseEmail = async (emailId) => {
 
   // Upload file to specified bucket.
   await s3Client.send(new PutObjectCommand(uploadParams))
+  logger.info(LOG_TAG, 'attachment uploaded to S3')
 
   newCameraInput.mediaType = parsedEmail.attachments[0].contentType
   const mediaUrl = `https://${process.env.AWS_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileKey}`
@@ -192,6 +193,7 @@ const parseEmail = async (emailId) => {
 
   //Upsert to mongoDB
   await upsertRecording(newCameraInput)
+  logger.info(LOG_TAG, 'recording inserted to DB')
 }
 
 const parseEmailText = (emailText) => {
