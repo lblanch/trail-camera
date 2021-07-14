@@ -1,6 +1,6 @@
 const supertest = require('supertest')
 
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/connection_helper')
+const { connect, disconnect, clearSessionStore } = require('../../app')
 const { reloadAdminUser, reloadBasicUser, clearUsers } = require('../helpers/users_helper')
 const { initialRecordings, reloadRecordings, clearRecordings } = require('../helpers/recordings_helper')
 
@@ -9,7 +9,7 @@ let server
 let testAdminUser, testBasicUser
 
 beforeAll(async () => {
-  server = await handleTestConnection()
+  server = await connect()
 
   //Create 3 agents, to login different users
   agentLogout = supertest.agent(server)
@@ -34,7 +34,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  await handleTestDisconnection(server)
+  await disconnect()
 })
 
 describe('The collection is empty', () => {

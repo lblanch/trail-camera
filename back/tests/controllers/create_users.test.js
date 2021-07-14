@@ -1,9 +1,9 @@
-//require('leaked-handles')
+require('leaked-handles')
 const supertest = require('supertest')
 
 const User = require('../../models/user')
 const Token = require('../../models/token')
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/connection_helper')
+const { connect, disconnect, clearSessionStore } = require('../../app')
 const { reloadAdminUser, reloadBasicUser, clearUsers, clearTokens } = require('../helpers/users_helper')
 
 let agentAdmin, agentBasic, agentLogout
@@ -17,7 +17,7 @@ const newUser = {
 }
 
 beforeAll(async () => {
-  server = await handleTestConnection()
+  server = await connect()
 
   //Create 3 agents, to login different users
   agentLogout = supertest.agent(server)
@@ -33,7 +33,7 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
-  await handleTestDisconnection(server)
+  await disconnect()
 })
 
 test('Create user with no user logged in returns status 401 and error message', async () => {

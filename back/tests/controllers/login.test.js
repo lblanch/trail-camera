@@ -1,6 +1,6 @@
 const supertest = require('supertest')
 
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/connection_helper')
+const { connect, disconnect, clearSessionStore } = require('../../app')
 const { reloadAdminUser, clearUsers } = require('../helpers/users_helper')
 
 let api
@@ -8,7 +8,7 @@ let server
 let testUser
 
 beforeAll(async () => {
-  server = await handleTestConnection()
+  server = await connect()
 
   api = supertest(server)
 })
@@ -20,7 +20,7 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
-  await handleTestDisconnection(server)
+  await disconnect()
 })
 
 describe('Login', () => {

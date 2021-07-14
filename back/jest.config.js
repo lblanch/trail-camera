@@ -5,6 +5,7 @@ module.exports = {
     '**/*.js',
     '!*.config.js',
     '!node_modules/**',
+    '!index.js',
     '!.eslintrc.js',
     '!coverage/**',
     '!tests/**'

@@ -1,16 +1,14 @@
-const { app } = require('./app')
-const http = require('http')
-const mongoose = require('mongoose')
+const { connect, disconnect } = require('./app')
 const logger = require('./utils/logger')
-require('dotenv').config()
 
-const dbUri = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI : process.env.TEST_MONGODB_URI
-mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-  .then(() => logger.info('connected to MongoDB in mode ', process.env.NODE_ENV))
-  .catch(error => logger.error('error connecting to MongoDB', error.message))
+connect().then(() => logger.info(`Server running on port ${process.env.PORT}. ENV = ${process.env.NODE_ENV}`))
 
-const server = http.createServer(app)
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received. Graceful shutdown...')
+  await disconnect()
+})
 
-server.listen(process.env.PORT, () => {
-  logger.info(`Server running on port ${process.env.PORT}. ENV = ${process.env.NODE_ENV}`)
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received. Graceful shutdown...')
+  await disconnect()
 })

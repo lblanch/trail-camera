@@ -3,7 +3,7 @@ const supertest = require('supertest')
 const Token = require('../../models/token')
 const User = require('../../models/user')
 
-const { handleTestConnection, clearSessionStore, handleTestDisconnection } = require('../helpers/connection_helper')
+const { connect, disconnect, clearSessionStore } = require('../../app')
 const { reloadInvitedUser, clearUsers, clearTokens, reloadInvitationToken, reloadAdminUser } = require('../helpers/users_helper')
 
 let api
@@ -12,7 +12,7 @@ let testInvitedUser
 let invitationToken
 
 beforeAll(async () => {
-  server = await handleTestConnection()
+  server = await connect()
 
   api = supertest(server)
 })
@@ -26,7 +26,7 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
-  await handleTestDisconnection(server)
+  await disconnect()
 })
 
 test('Register user with a valid invite token returns status 200', async () => {
