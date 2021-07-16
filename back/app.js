@@ -3,6 +3,7 @@ const session = require('express-session')
 const MongoDBStore = require('connect-mongodb-session')(session)
 const mongoose = require('mongoose')
 const { createHttpTerminator } = require('http-terminator')
+const helmet = require('helmet')
 require('express-async-errors')
 require('dotenv').config()
 
@@ -39,6 +40,7 @@ store.on('connected', () => {
 
 const app = express()
 app.use(express.json())
+app.use(helmet())
 
 app.use(session({
   name: 'sid',

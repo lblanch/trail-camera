@@ -1,4 +1,4 @@
-require('leaked-handles')
+//require('leaked-handles')
 const supertest = require('supertest')
 
 const User = require('../../models/user')
