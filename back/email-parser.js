@@ -8,27 +8,22 @@ const mongoose = require('mongoose')
 const { upsertRecording } = require('./services/recordings')
 const logger = require('./utils/logger')
 
+//Constants
+const MONGODB_URI = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI : process.env.TEST_MONGODB_URI
+const MONGODB_OPTIONS = { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
 const LOG_TAG = 'email-parser:'
 const MAX_RETRY_ATTEMPTS = 100
-
-let retryAttempts = 0
-
-//avoid ImapFlow log messages in test and prod env
-let pinoOptions
-if (process.env.NODE_ENV === 'development') {
-  pinoOptions = {
-    prettyPrint: {
-      singleLine: true,
-      ignore: 'pid,hostname,time',
-      messageFormat: '{src} - {msg} - {error}'
-    },
-    level: 'debug'
-  }
-} else {
-  pinoOptions = { level: 'silent' }
+const PINO_SILENT = { level: 'silent' }
+const PINO_DEV = {
+  prettyPrint: {
+    singleLine: true,
+    ignore: 'pid,hostname,time',
+    messageFormat: '{src} - {msg} - {error}'
+  },
+  level: 'debug'
 }
-
-const imapOptions = {
+const PINO_OPTIONS = process.env.NODE_ENV === 'development' ? PINO_DEV : PINO_SILENT
+const DEFAULT_IMAP_OPTIONS = {
   host: process.env.IMAP_HOST,
   port: 993,
   secure: true,
@@ -36,30 +31,44 @@ const imapOptions = {
     user: process.env.IMAP_USER,
     pass: process.env.IMAP_PASSWORD
   },
-  logger: pino(pinoOptions)
+  logger: pino(PINO_OPTIONS)
 }
+
+//Variables
+let retryAttempts = 0
+let isImapConnected = false
+let retry = true
+let client
+let s3Client
+let imapOptions = DEFAULT_IMAP_OPTIONS
 
 const createNewImapClient = () => {
   let newClient = new ImapFlow(imapOptions)
   newClient.on('close', onClose)
   newClient.on('error', onError)
   newClient.on('exists', onExists)
+  isImapConnected = false
   return newClient
 }
 
-const onError = error => logger.error(LOG_TAG, 'error!', error)
+const onError = error => logger.error(LOG_TAG, 'onError!', error.message)
 
 const onClose = async () => {
-  logger.info(LOG_TAG, 'connection closed')
-  if (!client.usable) {
-    logger.info(LOG_TAG, 'client not usable')
-    client = createNewImapClient()
-  }
-  const resultImap = await connectImapClientAndSelectMailbox()
-  if (resultImap) {
-    logger.info(LOG_TAG, 'all good')
+  isImapConnected = false
+  if (retry) {
+    logger.info(LOG_TAG, 'imap connection closed. Retrying...')
+    if (!client.usable) {
+      logger.info(LOG_TAG, 'imap client not usable. Creating new one...')
+      client = createNewImapClient()
+    }
+    const resultImap = await connectImapClientAndSelectMailbox()
+    if (resultImap) {
+      logger.info(LOG_TAG, 'imap client reconnected: all good')
+    } else {
+      logger.info(LOG_TAG, 'imap reconnection failed, trying again...')
+    }
   } else {
-    logger.info(LOG_TAG, 'imap failed, trying again.')
+    logger.info(LOG_TAG, 'connection closed.')
   }
 }
 
@@ -77,42 +86,47 @@ const onExists = async data => {
   }
 }
 
-let client = createNewImapClient()
+const start = async (imapTestOptions) => {
+  retryAttempts = 0
+  retry = true
 
-// Create an Amazon S3 service client object.
-const s3Client = new S3Client({ region: process.env.AWS_REGION })
+  if(imapTestOptions !== undefined) {
+    imapOptions = imapTestOptions
+  }
 
-const dbUri = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI : process.env.TEST_MONGODB_URI
-const dbOptions = { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
+  client = createNewImapClient()
 
-const run = async () => {
+  s3Client = new S3Client({ region: process.env.AWS_REGION })
+
   const resultMongo = await connectMongoDB()
   if  (resultMongo) {
     const resultImap = await connectImapClientAndSelectMailbox()
     if (resultImap) {
-      logger.info(LOG_TAG, 'all good')
+      logger.info(LOG_TAG, 'imap client connected: all good')
     } else {
-      logger.info(LOG_TAG, 'imap failed')
+      logger.info(LOG_TAG, 'imap connection failed')
     }
   } else {
-    logger.info(LOG_TAG, 'mongo failed')
+    logger.info(LOG_TAG, 'MongoDB connection failed')
   }
+
+  return client
 }
 
 const connectImapClientAndSelectMailbox = async () => {
   retryAttempts++
-  logger.info(LOG_TAG, 'trying to connect to email server, times:', retryAttempts)
+  logger.info(LOG_TAG, 'Attempt number' , retryAttempts, 'Trying to connect to email server.')
   try {
-    // Wait until client connects and authorizes
     await client.connect()
     logger.info(LOG_TAG, 'connected to email server')
+    isImapConnected = true
     retryAttempts = 0
   } catch (error) {
     logger.error(LOG_TAG, 'error connecting to email server', error.message)
     if (retryAttempts < MAX_RETRY_ATTEMPTS) {
       setTimeout(connectImapClientAndSelectMailbox, retryAttempts * 1000)
     } else {
-      mongoose.connection.close()
+      await disconnect()
       throw new Error('Too many attempts to connect to email server.')
     }
     return false
@@ -124,15 +138,38 @@ const connectImapClientAndSelectMailbox = async () => {
     return true
   } catch (error) {
     logger.error(LOG_TAG, 'error when getting the inbox', error.message)
-    await client.logout()
-    mongoose.connection.close()
+    await disconnect()
     return false
+  }
+}
+
+const disconnect = async () => {
+  retry = false
+  //Disconnect dabatase connection
+  logger.info(LOG_TAG, 'mongoose ready state', mongoose.connection.readyState)
+  //1 = connected
+  if(mongoose.connection.readyState === 1) {
+    await mongoose.disconnect()
+    logger.info(LOG_TAG, 'Mongoose disconnected')
+  }
+
+  //Logout client
+  logger.info(LOG_TAG, 'client usable', client.usable, 'Connected', isImapConnected)
+  if (isImapConnected && client.usable) {
+    isImapConnected = false
+    await client.logout()
+    logger.info(LOG_TAG, 'client logged out')
+  }
+
+  //Shutdown S3 connection
+  if(s3Client) {
+    s3Client.destroy()
   }
 }
 
 const connectMongoDB = async () => {
   try {
-    await mongoose.connect(dbUri, dbOptions)
+    await mongoose.connect(MONGODB_URI, MONGODB_OPTIONS)
     logger.info(LOG_TAG, 'connected to DB server')
     return true
   } catch(error) {
@@ -152,7 +189,14 @@ const parseEmail = async (emailId) => {
 
   let newCameraInput = {}
 
-  newCameraInput.emailDeliveryDate = new Date(parsedEmail.headers.get('delivery-date'))
+  if(parsedEmail.headers.has('date')) {
+    newCameraInput.emailDeliveryDate = new Date(parsedEmail.headers.get('date'))
+  } else if(parsedEmail.headers.has('delivery-date')) {
+    newCameraInput.emailDeliveryDate = new Date(parsedEmail.headers.get('delivery-date'))
+  } else {
+    newCameraInput.emailDeliveryDate = new Date()
+  }
+
   newCameraInput.sentTo = parsedEmail.headers.get('to').text
   newCameraInput.sentFrom = parsedEmail.headers.get('from').text
   newCameraInput.subject = parsedEmail.subject
@@ -211,4 +255,4 @@ const parseEmailText = (emailText) => {
   return emailInfo
 }
 
-run().catch(err => logger.error(LOG_TAG, 'error on run!', err))
+module.exports = { start, disconnect }

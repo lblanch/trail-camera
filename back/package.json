@@ -6,16 +6,16 @@
   "scripts": {
     "start": "NODE_ENV=production node index.js",
     "start:test": "NODE_ENV=test node index.js",
-    "email-parser": "NODE_ENV=production node email-parser.js",
-    "email-parser:dev": "NODE_ENV=development node email-parser.js",
+    "email-parser": "NODE_ENV=production node index-email.js",
+    "email-parser:dev": "NODE_ENV=development node index-email.js",
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test jest --verbose --runInBand --detectOpenHandles",
     "lint": "eslint ."
   },
   "keywords": [],
   "author": {
-    "name" : "Laura Blanch Osset",
-    "email" : "laura.blancho@gmail.com"
+    "name": "Laura Blanch Osset",
+    "email": "laura.blancho@gmail.com"
   },
   "license": "ISC",
   "dependencies": {
@@ -38,6 +38,7 @@
     "@types/jest": "^26.0.21",
     "eslint": "^7.22.0",
     "eslint-plugin-jest": "^24.3.2",
+    "hoodiecrow-imap": "^2.1.0",
     "jest": "^27.0.0",
     "nodemon": "^2.0.7",
     "pino-pretty": "^5.1.1",
