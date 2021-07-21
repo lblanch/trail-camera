@@ -24,6 +24,7 @@ jsconfig.json
 /docs/credentials.csv
 /back/requests
 /back/coverage
+.vscode
 
 npm-debug.log*
 yarn-debug.log*

@@ -10,6 +10,7 @@
     "email-parser:dev": "NODE_ENV=development node index-email.js",
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test jest --verbose --runInBand --detectOpenHandles",
+    "test:verbose": "NODE_ENV=development jest --verbose --runInBand --detectOpenHandles",
     "lint": "eslint ."
   },
   "keywords": [],
