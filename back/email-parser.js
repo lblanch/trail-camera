@@ -1,8 +1,8 @@
 const simpleParser = require('mailparser').simpleParser
 
-const { upsertRecording } = require('../services/recordings')
-const { sendFileToS3 } = require('./awsS3')
-const logger = require('./logger')
+const { upsertRecording } = require('./services/recordings')
+const { sendFileToS3 } = require('./utils/awsS3')
+const logger = require('./utils/logger')
 
 const LOG_TAG = 'email-parser:'
 
@@ -30,6 +30,8 @@ const parseEmail = async (downloadedEmailContent) => {
   if (parsedEmail.text) {
     const emailInfoJson = parseEmailText(parsedEmail.text)
 
+    console.log(emailInfoJson)
+
     newCameraInput.emailBody = emailInfoJson
     if (emailInfoJson.date && emailInfoJson.time) {
       const dateSplit = emailInfoJson.date.split('.')
@@ -47,6 +49,7 @@ const parseEmail = async (downloadedEmailContent) => {
   const fileKey = `${newCameraInput.mediaDate.getTime()}_${parsedEmail.attachments[0].filename}`
   const metadata = { mediaDate: newCameraInput.mediaDate.toISOString() }
   const mediaUrl = await sendFileToS3(parsedEmail.attachments[0].content, fileKey, metadata)
+  logger.info(LOG_TAG, 'picture uploaded to S3')
 
   newCameraInput.mediaType = parsedEmail.attachments[0].contentType
   newCameraInput.mediaThumbnailURL = mediaUrl
@@ -60,10 +63,13 @@ const parseEmail = async (downloadedEmailContent) => {
 const parseEmailText = (emailText) => {
   const emailInfo = emailText.split('\n').reduce((accumulator, currentValue) => {
     let workingAccumulator = accumulator
-    const splitLine = currentValue.split(': ')
 
-    if (splitLine.length === 2 && splitLine[1] !== '') {
-      workingAccumulator[splitLine[0].replace(/ /g, '-').toLowerCase()] = splitLine[1]
+    const delimiterIndex = currentValue.indexOf(':')
+    const key = currentValue.substring(0, delimiterIndex).trim()
+    const value = currentValue.substring(delimiterIndex + 1).trim()
+
+    if (key !== '' && value !== '') {
+      workingAccumulator[key.replace(/ /g, '-').toLowerCase()] = value
       return workingAccumulator
     }
     return accumulator
@@ -72,4 +78,4 @@ const parseEmailText = (emailText) => {
   return emailInfo
 }
 
-module.exports = { parseEmail }
+module.exports = { parseEmail, parseEmailText }

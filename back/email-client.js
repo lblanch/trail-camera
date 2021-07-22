@@ -3,7 +3,7 @@ const pino = require('pino')
 require('dotenv').config()
 const mongoose = require('mongoose')
 
-const { parseEmail } = require('./utils/email-parser')
+const { parseEmail } = require('./email-parser')
 const logger = require('./utils/logger')
 const { createS3Client, shutdownS3Client } = require('./utils/awsS3')
 

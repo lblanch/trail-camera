@@ -1,5 +1,5 @@
-jest.mock('../../utils/email-parser')
-const mockEmailParser = require('../../utils/email-parser')
+jest.mock('../../email-parser')
+const mockEmailParser = require('../../email-parser')
 const hoodiecrow = require('hoodiecrow-imap')
 const pino = require('pino')
 
@@ -49,7 +49,7 @@ test('Email-client calls email-parser when a new email is received', async () =>
 
   imapServer.appendMessage('INBOX', [], new Date(), rawMessage)
 
-  //wait 1 sec for client to receive EXISTS event
+  //wait 20 sec for client to receive EXISTS event
   await new Promise(resolve => setTimeout(resolve, 20000))
 
   // The function was called exactly once

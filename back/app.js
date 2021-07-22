@@ -79,7 +79,7 @@ const connect = async () => {
 }
 
 const disconnect = async () => {
-  //Disconnect dabatase connection
+  //Disconnect database connection
   logger.info('mongoose ready state', mongoose.connection.readyState)
   //1 = connected
   if(mongoose.connection.readyState === 1) {
@@ -87,12 +87,13 @@ const disconnect = async () => {
     logger.info('Mongoose disconnected')
   }
 
+  //TODO: any way to check if the db connection is on before closing it? This seems to work well though...
   //Disconnect store database connection
-  logger.info('mongodb store connected', store.client.isConnected())
-  if(store.client.isConnected()) {
-    await store.client.close()
-    logger.info('MongoDB store disconnected')
-  }
+  //logger.info('mongodb store connected', store.client.isConnected())
+  //if(store.client.isConnected()) {
+  await store.client.close()
+  logger.info('MongoDB store disconnected')
+  //}
 
   //Stop server
   logger.info('server listening', server.listening)
