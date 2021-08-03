@@ -6,26 +6,18 @@ const rawMessageWithoutAttachments = 'From: sender name <sender@example.com>\r\n
   '\r\n' +
   'No attachments here!'
 
-const rawMessageWithAttachments = 'From: sender name <sender@example.com>\r\n' +
-  'To: Receiver name <receiver@example.com>\r\n' +
-  'Date: Wed, 21 Jul 2021 18:18:11 +0300\r\n' +
-  'Message-ID: <abcde>\r\n' +
-  'Subject: test with small image\r\n' +
-  'Content-Type: multipart/mixed; boundary="00000000000060862005c7a3ae32"\r\n' +
+const to = 'To: Receiver name <receiver@example.com>\r\n'
+const from = 'From: sender name <sender@example.com>\r\n'
+const date = 'Date: Wed, 21 Jul 2021 18:18:11 +0300\r\n'
+const deliveryDate = 'Delivery-date: Wed, 22 Jul 2021 18:18:11 +0300\r\n'
+const messageId = 'Message-ID: <abcde>\r\n'
+const subject = 'Subject: test with small image\r\n'
+const contentHeader = 'Content-Type: multipart/mixed; boundary="00000000000060862005c7a3ae32"\r\n' +
   '\r\n' +
   '--00000000000060862005c7a3ae32\r\n' +
   'Content-Type: text/plain; charset="UTF-8"\r\n' +
-  '\r\n' +
-  'Photo: [10/Unlimited]\r\n' +
-  'Date: 05.02.21\r\n' +
-  'Time: 20:42:44\r\n' +
-  'Temperature: 23 degree Celsius(C)\r\n' +
-  'Battery: 80%\r\n' +
-  'Signal: Good\r\n' +
-  'SD card free space: 14.42 GB of 14.91 GB(96.71%)\r\n' +
-  'P\r\n' +
-  '\r\n' +
-  '--00000000000060862005c7a3ae32\r\n' +
+  '\r\n'
+const contentFooter = '--00000000000060862005c7a3ae32\r\n' +
   'Content-Type: image/png; name="16x16.png"\r\n' +
   'Content-Disposition: attachment; filename="16x16.png"\r\n' +
   'Content-Transfer-Encoding: base64\r\n' +
@@ -41,8 +33,52 @@ const rawMessageWithAttachments = 'From: sender name <sender@example.com>\r\n' +
   'P8cW0FcWhz6oGYxDx6VdzaMACz9Hb3wNo3i0O6HVE96hGosaOjZupn9sAz2lyarKbPUfOS2z9vey\r\n' +
   'b92QQAx6tjXwAAAAAElFTkSuQmCC\r\n' +
   '--00000000000060862005c7a3ae32--\r\n'
+const emailTextDateTime = 'Photo: [10/Unlimited]\r\n' +
+  'Date: 05.02.21\r\n' +
+  'Time: 20:42:44\r\n' +
+  'Temperature: 23 degree Celsius(C)\r\n' +
+  'Battery: 80%\r\n' +
+  'Signal: Good\r\n' +
+  'SD card free space: 14.42 GB of 14.91 GB(96.71%)\r\n' +
+  'P\r\n' +
+  '\r\n'
+const emailTextDate = 'Photo: [10/Unlimited]\r\n' +
+  'Date: 05.02.21\r\n' +
+  'Temperature: 23 degree Celsius(C)\r\n' +
+  'Battery: 80%\r\n' +
+  'Signal: Good\r\n' +
+  'SD card free space: 14.42 GB of 14.91 GB(96.71%)\r\n' +
+  'P\r\n' +
+  '\r\n'
+const emailTextTime = 'Photo: [10/Unlimited]\r\n' +
+  'Time: 20:42:44\r\n' +
+  'Temperature: 23 degree Celsius(C)\r\n' +
+  'Battery: 80%\r\n' +
+  'Signal: Good\r\n' +
+  'SD card free space: 14.42 GB of 14.91 GB(96.71%)\r\n' +
+  'P\r\n' +
+  '\r\n'
+const emailText = 'Photo: [10/Unlimited]\r\n' +
+  'Temperature: 23 degree Celsius(C)\r\n' +
+  'Battery: 80%\r\n' +
+  'Signal: Good\r\n' +
+  'SD card free space: 14.42 GB of 14.91 GB(96.71%)\r\n' +
+  'P\r\n' +
+  '\r\n'
+
+const rawMessageWithAttachment = {
+  full: from + to + date + messageId + subject + contentHeader + emailTextDateTime + contentFooter,
+  deliveryDate: from + to + deliveryDate + messageId + subject + contentHeader + emailTextDateTime + contentFooter,
+  noHeaderDate: from + to + messageId + subject + contentHeader + emailTextDateTime + contentFooter,
+  noTextDate: from + to + date + messageId + subject + contentHeader + emailTextTime + contentFooter,
+  noTextTime: from + to + date + messageId + subject + contentHeader + emailTextDate + contentFooter,
+  noTextDateTime: from + to + date + messageId + subject + contentHeader + emailText + contentFooter,
+  emptyText: from + to + date + messageId + subject + contentHeader + contentFooter,
+  noHeaderDateNoTextDateTime: from + to + messageId + subject + contentHeader + emailText + contentFooter
+}
 
 const upsertEmailWithAttachments = {
+  mediaType: 'image/png',
   emailDeliveryDate: new Date('2021-07-21T15:18:11.000Z'),
   sentTo: 'Receiver name <receiver@example.com>',
   sentFrom: 'sender name <sender@example.com>',
@@ -57,13 +93,12 @@ const upsertEmailWithAttachments = {
     'sd-card-free-space': '14.42 GB of 14.91 GB(96.71%)'
   },
   mediaDate: new Date('2021-02-05T18:42:44.000Z'),
-  mediaType: 'image/png',
   mediaThumbnailURL: 'https://someMediaUrl.com/myPic.jpg',
   mediaURL: 'https://someMediaUrl.com/myPic.jpg'
 }
 
 module.exports = {
-  rawMessageWithAttachments,
+  rawMessageWithAttachment,
   rawMessageWithoutAttachments,
   upsertEmailWithAttachments
 }

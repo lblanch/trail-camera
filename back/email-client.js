@@ -52,6 +52,7 @@ const createNewImapClient = () => {
 const onError = error => logger.error(LOG_TAG, 'onError!', error.message)
 
 const onClose = async () => {
+  logger.info(LOG_TAG, 'onClose')
   isImapConnected = false
   if (retry) {
     logger.info(LOG_TAG, 'imap connection closed. Retrying...')
@@ -59,11 +60,19 @@ const onClose = async () => {
       logger.info(LOG_TAG, 'imap client not usable. Creating new one...')
       client = createNewImapClient()
     }
-    const resultImap = await connectImapClientAndSelectMailbox()
-    if (resultImap) {
-      logger.info(LOG_TAG, 'imap client reconnected: all good')
+
+    if (retryAttempts < MAX_RETRY_ATTEMPTS) {
+      setTimeout(async () => {
+        const resultImap = await connectImapClientAndSelectMailbox()
+        if (resultImap) {
+          logger.info(LOG_TAG, 'imap client reconnected: all good')
+        } else {
+          logger.info(LOG_TAG, 'imap reconnection failed, trying again...')
+        }
+      }, retryAttempts * 1000)
     } else {
-      logger.info(LOG_TAG, 'imap reconnection failed, trying again...')
+      await disconnect()
+      throw new Error('Too many attempts to connect to email server.')
     }
   } else {
     logger.info(LOG_TAG, 'imap connection closed without retries.')
@@ -123,12 +132,6 @@ const connectImapClientAndSelectMailbox = async () => {
     retryAttempts = 0
   } catch (error) {
     logger.error(LOG_TAG, 'error connecting to email server', error.message)
-    if (retryAttempts < MAX_RETRY_ATTEMPTS) {
-      setTimeout(connectImapClientAndSelectMailbox, retryAttempts * 1000)
-    } else {
-      await disconnect()
-      throw new Error('Too many attempts to connect to email server.')
-    }
     return false
   }
 

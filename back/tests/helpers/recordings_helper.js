@@ -2,7 +2,7 @@ const Recording = require('../../models/recording')
 
 const initialRecordings = [
   {
-    date: new Date(Date.UTC(2021, 1, 7, 18, 42, 44)),
+    date: new Date(Date.UTC(2021, 1, 7, 8, 42, 44)),
     count: 20,
     recording: {
       emailBody: {
@@ -24,7 +24,7 @@ const initialRecordings = [
     }
   },
   {
-    date: new Date(Date.UTC(2021, 1, 6, 17, 13, 44)),
+    date: new Date(Date.UTC(2021, 1, 6, 7, 13, 44)),
     count: 20,
     recording: {
       emailBody: {
@@ -46,7 +46,7 @@ const initialRecordings = [
     }
   },
   {
-    date: new Date(Date.UTC(2021, 1, 5, 20, 56, 30)),
+    date: new Date(Date.UTC(2021, 1, 5, 8, 56, 30)),
     count: 20,
     recording: {
       emailBody: {
@@ -68,7 +68,7 @@ const initialRecordings = [
     }
   },
   {
-    date: new Date(Date.UTC(2021, 1, 5, 22, 34, 30)),
+    date: new Date(Date.UTC(2021, 1, 5, 10, 34, 30)),
     count: 5,
     recording: {
       emailBody: {

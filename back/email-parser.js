@@ -30,8 +30,6 @@ const parseEmail = async (downloadedEmailContent) => {
   if (parsedEmail.text) {
     const emailInfoJson = parseEmailText(parsedEmail.text)
 
-    console.log(emailInfoJson)
-
     newCameraInput.emailBody = emailInfoJson
     if (emailInfoJson.date && emailInfoJson.time) {
       const dateSplit = emailInfoJson.date.split('.')
@@ -61,15 +59,26 @@ const parseEmail = async (downloadedEmailContent) => {
 }
 
 const parseEmailText = (emailText) => {
+  const keys = new Array()
+  let runningNumber
+
   const emailInfo = emailText.split('\n').reduce((accumulator, currentValue) => {
     let workingAccumulator = accumulator
 
     const delimiterIndex = currentValue.indexOf(':')
-    const key = currentValue.substring(0, delimiterIndex).trim()
+    let key = currentValue.substring(0, delimiterIndex).trim()
     const value = currentValue.substring(delimiterIndex + 1).trim()
 
     if (key !== '' && value !== '') {
-      workingAccumulator[key.replace(/ /g, '-').toLowerCase()] = value
+      key = key.replace(/ /g, '-').toLowerCase()
+      if (keys[key]) {
+        runningNumber = keys[key]
+        keys[key] = runningNumber + 1
+        key = key.concat(runningNumber)
+      } else {
+        keys[key] = 1
+      }
+      workingAccumulator[key] = value
       return workingAccumulator
     }
     return accumulator

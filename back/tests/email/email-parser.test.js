@@ -11,15 +11,6 @@ describe('Parsing whole email contents', () => {
     mockedRecordings.upsertRecording.mockReset()
   })
 
-  test('when email has attachment, parses the email, stores attachment to S3 and creates a new recording in DB', async () => {
-    mockedAwsS3.sendFileToS3.mockReturnValue(helper.upsertEmailWithAttachments.mediaURL)
-    await parseEmail(helper.rawMessageWithAttachments)
-
-    expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
-    expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
-    expect(mockedRecordings.upsertRecording).toHaveBeenCalledWith(helper.upsertEmailWithAttachments)
-  })
-
   test('without attachment, doesn\'t create a new recording in DB and doesn\'t try to store it to S3', async () => {
     await expect(parseEmail(helper.rawMessageWithoutAttachments))
       .rejects.toThrow('email doesn\'t have attachments')
@@ -27,12 +18,100 @@ describe('Parsing whole email contents', () => {
     expect(mockedAwsS3.sendFileToS3).not.toHaveBeenCalled()
     expect(mockedRecordings.upsertRecording).not.toHaveBeenCalled()
   })
-  //TODO: test with email not having date or delivery-date header
-  //TODO: test with empty email body
-  //TODO: test with email body that doesn't have date/time in it
-  //TODO: test with email body with only date
-  //TODO: test with email body with only time
-  //TODO: check proper parsing of fields: to, from, date/delivery-date, subject, mediatype
+
+  describe('with attachment', () => {
+    beforeEach(() => {
+      mockedAwsS3.sendFileToS3.mockReturnValue(helper.upsertEmailWithAttachments.mediaURL)
+    })
+
+    test('full attachment, it parses the email, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.full)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalledWith(helper.upsertEmailWithAttachments)
+    })
+
+    test('missing date header, it uses delivery-date as date, parses the email, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.deliveryDate)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      expect(generatedUpsert.emailDeliveryDate.getUTCDate()).toEqual(helper.upsertEmailWithAttachments.emailDeliveryDate.getUTCDate()+1)
+    })
+
+    test('missing date or delivery-date header, it uses current date, parses the email, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.noHeaderDate)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      const todayDate = new Date()
+      expect(generatedUpsert.emailDeliveryDate.getUTCDate()).toEqual(todayDate.getUTCDate())
+      expect(generatedUpsert.emailDeliveryDate.getUTCMonth()).toEqual(todayDate.getUTCMonth())
+      expect(generatedUpsert.emailDeliveryDate.getUTCFullYear()).toEqual(todayDate.getUTCFullYear())
+    })
+
+    test('missing date/delivery-date header and email body date, it uses current date for both emailDeliveryDate and mediaDate, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.noHeaderDateNoTextDateTime)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      const todayDate = new Date()
+      expect(generatedUpsert.emailDeliveryDate.getUTCDate()).toEqual(todayDate.getUTCDate())
+      expect(generatedUpsert.emailDeliveryDate.getUTCMonth()).toEqual(todayDate.getUTCMonth())
+      expect(generatedUpsert.emailDeliveryDate.getUTCFullYear()).toEqual(todayDate.getUTCFullYear())
+      expect(generatedUpsert.mediaDate.getUTCDate()).toEqual(todayDate.getUTCDate())
+      expect(generatedUpsert.mediaDate.getUTCMonth()).toEqual(todayDate.getUTCMonth())
+      expect(generatedUpsert.mediaDate.getUTCFullYear()).toEqual(todayDate.getUTCFullYear())
+    })
+
+    test('with empty email body, doesn\'t include emailBody field, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.emptyText)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      expect(generatedUpsert.mediaDate).toEqual(generatedUpsert.emailDeliveryDate)
+      expect(generatedUpsert.emailBody).toBeUndefined()
+    })
+
+    test('email body without date/time, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.noTextDateTime)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      expect(generatedUpsert.mediaDate).toEqual(generatedUpsert.emailDeliveryDate)
+    })
+
+    test('email body with only date, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.noTextTime)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      expect(generatedUpsert.mediaDate).toEqual(generatedUpsert.emailDeliveryDate)
+    })
+
+    test('email body with only time, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
+      await parseEmail(helper.rawMessageWithAttachment.noTextDate)
+
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      expect(generatedUpsert.mediaDate).toEqual(generatedUpsert.emailDeliveryDate)
+    })
+  })
 })
 
 describe('Parsing email body text', () => {
@@ -61,6 +140,53 @@ describe('Parsing email body text', () => {
     expect(result).not.toHaveProperty('key4')
   })
 
-  //TODO: test when several lines have same keys
-  //TODO: test when keys have spaces
+  test('Repeated keys are kept with a running number appended at the end', () => {
+    const emailText = 'key:value\n' +
+    'key:value1\n' +
+    'key:value2\n'
+
+    const expectedResult = {
+      key: 'value',
+      key1: 'value1',
+      key2: 'value2'
+    }
+
+    const result = parseEmailText(emailText)
+
+    expect(result).toEqual(expectedResult)
+  })
+
+  test('keys with spaces are trimmed or if in the middle, substituted with -', () => {
+    const emailText = 'key     :value\n' +
+    '     key2:value1\n' +
+    'key has some spaces :value2\n' +
+    '    key    has    spaces      everywhere    :value3\n'
+
+    const expectedResult = {
+      key: 'value',
+      key2: 'value1',
+      'key-has-some-spaces': 'value2',
+      'key----has----spaces------everywhere': 'value3'
+    }
+
+    const result = parseEmailText(emailText)
+
+    expect(result).toEqual(expectedResult)
+  })
+
+  test('only first : is used to determine key:value, rest are ignored', () => {
+    const emailText = 'key:value:with:many:of:these\n' +
+    'key1:this : are: not ::: keys\n' +
+    'key2::::::::\n'
+
+    const expectedResult = {
+      key: 'value:with:many:of:these',
+      key1: 'this : are: not ::: keys',
+      key2: ':::::::'
+    }
+
+    const result = parseEmailText(emailText)
+
+    expect(result).toEqual(expectedResult)
+  })
 })
