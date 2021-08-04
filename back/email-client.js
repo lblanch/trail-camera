@@ -12,6 +12,7 @@ const MONGODB_URI = process.env.NODE_ENV === 'production' ? process.env.MONGODB_
 const MONGODB_OPTIONS = { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
 const LOG_TAG = 'email-parser:'
 const MAX_RETRY_ATTEMPTS = 100
+const INBOX_MAILBOX = 'INBOX'
 const PINO_SILENT = { level: 'silent' }
 const PINO_DEV = {
   prettyPrint: {
@@ -34,6 +35,8 @@ const DEFAULT_IMAP_OPTIONS = {
 }
 
 //Variables
+let stopAtAttempts = MAX_RETRY_ATTEMPTS
+let incomingMailbox = INBOX_MAILBOX
 let retryAttempts = 0
 let isImapConnected = false
 let retry = true
@@ -61,7 +64,7 @@ const onClose = async () => {
       client = createNewImapClient()
     }
 
-    if (retryAttempts < MAX_RETRY_ATTEMPTS) {
+    if (retryAttempts < stopAtAttempts) {
       setTimeout(async () => {
         const resultImap = await connectImapClientAndSelectMailbox()
         if (resultImap) {
@@ -69,10 +72,10 @@ const onClose = async () => {
         } else {
           logger.info(LOG_TAG, 'imap reconnection failed, trying again...')
         }
-      }, retryAttempts * 1000)
+      }, retryAttempts * 500)
     } else {
       await disconnect()
-      throw new Error('Too many attempts to connect to email server.')
+      logger.error('Too many attempts to connect to email server.')
     }
   } else {
     logger.info(LOG_TAG, 'imap connection closed without retries.')
@@ -95,12 +98,20 @@ const onExists = async data => {
   }
 }
 
-const start = async (imapTestOptions) => {
+const start = async (imapTestOptions, testRetryAttempts, testMailbox) => {
   retryAttempts = 0
   retry = true
 
-  if(imapTestOptions !== undefined) {
+  if (imapTestOptions !== undefined) {
     imapOptions = imapTestOptions
+  }
+
+  if (testRetryAttempts !== undefined && testRetryAttempts < MAX_RETRY_ATTEMPTS) {
+    stopAtAttempts = testRetryAttempts
+  }
+
+  if (testMailbox !== undefined) {
+    incomingMailbox = testMailbox
   }
 
   client = createNewImapClient()
@@ -137,10 +148,10 @@ const connectImapClientAndSelectMailbox = async () => {
 
   try {
     // Select and lock a mailbox. Throws if mailbox does not exist
-    await client.getMailboxLock('INBOX')
+    await client.getMailboxLock(incomingMailbox)
     return true
   } catch (error) {
-    logger.error(LOG_TAG, 'error when getting the inbox', error.message)
+    logger.error(LOG_TAG, 'error when getting the inbox:', error.message)
     await disconnect()
     return false
   }
@@ -169,6 +180,21 @@ const disconnect = async () => {
 
 const getClient = () => client
 
+// 1 = connected
+// 2 = disconnected but retrying
+// 3 = disconnected and not retrying
+const getClientStatus = () => {
+  if (isImapConnected) {
+    return 1
+  } else {
+    if(retry) {
+      return 2
+    } else {
+      return 3
+    }
+  }
+}
+
 const connectMongoDB = async () => {
   try {
     await mongoose.connect(MONGODB_URI, MONGODB_OPTIONS)
@@ -180,4 +206,4 @@ const connectMongoDB = async () => {
   }
 }
 
-module.exports = { start, disconnect, getClient }
+module.exports = { start, disconnect, getClient, getClientStatus }
