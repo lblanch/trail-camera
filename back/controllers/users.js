@@ -1,6 +1,7 @@
+const mongoose = require('mongoose')
 const usersRouter = require('express').Router()
 
-const { createNewUser, createInvitationToken, getAllUsers, getInvitationToken, updateUserPassword, deleteInvitationToken } = require('../services/users')
+const userService = require('../services/users')
 const { validatePassword } = require('../utils/authentication')
 const { logInFromSession } = require('../utils/middleware')
 
@@ -19,9 +20,9 @@ usersRouter.post('/', logInFromSession, async (request, response) => {
     createdBy: request.trailcamUser.email
   }
 
-  const savedUser = await createNewUser(sanitizedUser)
+  const savedUser = await userService.createNewUser(sanitizedUser)
 
-  await createInvitationToken(savedUser._id)
+  await userService.createInvitationToken(savedUser._id)
 
   response.status(201).send(savedUser)
 })
@@ -33,7 +34,7 @@ usersRouter.get('/', logInFromSession, async (request, response) => {
     throw newError
   }
 
-  const users = await getAllUsers()
+  const users = await userService.getAllUsers()
 
   response.status(200).send(users)
 })
@@ -53,7 +54,7 @@ usersRouter.patch('/registration/:invitationToken', async (request, response) =>
 
   validatePassword(request.body.password)
 
-  const invitationTokenFromDb = await getInvitationToken(request.params.invitationToken)
+  const invitationTokenFromDb = await userService.getInvitationToken(request.params.invitationToken)
 
   if (!invitationTokenFromDb) {
     const newError = new Error('Invitation token is invalid')
@@ -61,9 +62,9 @@ usersRouter.patch('/registration/:invitationToken', async (request, response) =>
     throw newError
   }
 
-  await updateUserPassword(invitationTokenFromDb.userId, request.body.password)
+  await userService.updateUserPassword(invitationTokenFromDb.userId, request.body.password)
 
-  await deleteInvitationToken(invitationTokenFromDb._id)
+  await userService.deleteInvitationToken(invitationTokenFromDb._id)
 
   response.status(200).end()
 })
@@ -73,6 +74,52 @@ usersRouter.patch('/registration/', async () => {
   const newError = new Error('Invitation token missing')
   newError.statusCode = 400
   throw newError
+})
+
+usersRouter.patch('/:userId', logInFromSession, async (request, response) => {
+  if (request.trailcamUser.role !== 'admin') {
+    const newError = new Error('Logged in user has wrong role')
+    newError.statusCode = 403
+    throw newError
+  }
+
+  if (request.trailcamUser._id === request.params.userId) {
+    const newError = new Error('It\'s not possible to change the role of the logged in user')
+    newError.statusCode = 403
+    throw newError
+  }
+
+  if (!request.body.role) {
+    const newError = new Error('Role missing')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (!mongoose.isValidObjectId(request.params.userId)) {
+    const newError = new Error('Invalid userId')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const updatedUser = await userService.updateUserRole(request.params.userId, request.body.role)
+
+  response.status(200).send({ name: updatedUser.name, email: updatedUser.email, role: updatedUser.role })
+})
+
+usersRouter.patch('/', logInFromSession, async (request, response) => {
+  if (!request.body.name || !request.body.email) {
+    const newError = new Error('Name and/or email missing')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const updatedUser = await userService.updateUserProfile(
+    request.trailcamUser._id,
+    request.body.name,
+    request.body.email
+  )
+
+  response.status(200).send({ name: updatedUser.name, email: updatedUser.email })
 })
 
 module.exports = usersRouter

@@ -14,6 +14,21 @@ const updateUserPassword = async (userId, newPassword) => {
   await userToBeUpdated.save()
 }
 
+const updateUserRole = async (userId, newRole) => {
+  const userToBeUpdated = await User.findById(userId)
+  userToBeUpdated.role = newRole
+
+  return await userToBeUpdated.save()
+}
+
+const updateUserProfile = async (userId, name, email) => {
+  const userToBeUpdated = await User.findById(userId)
+  userToBeUpdated.name = name
+  userToBeUpdated.email = email
+
+  return await userToBeUpdated.save()
+}
+
 const createInvitationToken = async (savedUserId) => {
   const tokenExpiryDate = new Date()
   tokenExpiryDate.setDate(tokenExpiryDate.getDate() + 7)
@@ -53,6 +68,8 @@ const getLoginUserByEmail = async (email) => {
 module.exports = {
   createNewUser,
   updateUserPassword,
+  updateUserRole,
+  updateUserProfile,
   createInvitationToken,
   deleteInvitationToken,
   getSessionUser,
