@@ -24,7 +24,7 @@ afterAll(async () => {
 })
 
 describe('Login', () => {
-  test('sucessful login when no existing session returns status 200, user info and sets cookie', async () => {
+  test('successful login when no existing session returns status 200, user info and sets cookie', async () => {
     const response = await api
       .post('/api/login')
       .send({ email: testUser.email, password: testUser.password })
@@ -36,7 +36,7 @@ describe('Login', () => {
     expect(response.body.email).toEqual(testUser.email)
   })
 
-  describe('unsucessful login', () => {
+  describe('unsuccessful login', () => {
     test('when someone is already logged in, returns status 400 and error message', async () => {
       const response = await api
         .post('/api/login')
@@ -104,5 +104,3 @@ describe('Login', () => {
     })
   })
 })
-
-//TODO: only users that have finalized user creation can login

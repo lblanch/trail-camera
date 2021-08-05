@@ -78,7 +78,7 @@ describe('Create user with admin user logged in', () => {
       .send({ email: testAdminUser.email, password: testAdminUser.password })
   })
 
-  describe('sucessful user creation', () => {
+  describe('successful user creation', () => {
     test('when passed valid data creates invitation token and returns status 201', async () => {
       const tokenAmountBefore = await Token.estimatedDocumentCount()
 
@@ -103,7 +103,7 @@ describe('Create user with admin user logged in', () => {
       expect(invitationToken.type).toEqual('invitation')
       //SHA256 returns 256 bits. Base64 encodes 6 bits into one char. 256/6 = 42.6 => 43
       expect(invitationToken.token).toHaveLength(43)
-      //Returned token should be url compatible (enconded with base64url)
+      //Returned token should be url compatible (encoded with base64url)
       expect(invitationToken.token).toMatch(/^[A-Za-z0-9_-]+$/)
     })
 
@@ -245,18 +245,3 @@ describe('Create user with admin user logged in', () => {
     })
   })
 })
-
-//TODO: send invitation when creating user
-// - send email with link with token.
-
-//TODO: finalize user creation
-// - users need to accept the invitation by clicking the link in email and creating a new password when prompted
-// - same system could be used to "remember password"
-
-//TODO: for a created user thar is not finalized, it should be possible to resend invitation at any point
-// - it should invalidate the previous existing invitation
-// - not possible if the user is finalized
-
-//TODO: users to be able to recover their password
-// - when logged out, by providing a valid email, they will receive a link to generate a new password
-// - from profile page, by pressing a button they can send the same email
