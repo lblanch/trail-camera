@@ -78,19 +78,19 @@ usersRouter.patch('/registration/', async () => {
 
 usersRouter.patch('/:userId', logInFromSession, async (request, response) => {
   if (request.trailcamUser.role !== 'admin') {
-    const newError = new Error('Logged in user has wrong role')
-    newError.statusCode = 403
-    throw newError
-  }
-
-  if (request.trailcamUser._id === request.params.userId) {
-    const newError = new Error('It\'s not possible to change the role of the logged in user')
+    const newError = new Error('Logged in user does not have permission')
     newError.statusCode = 403
     throw newError
   }
 
   if (!request.body.role) {
     const newError = new Error('Role missing')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (request.trailcamUser._id.toString() === request.params.userId) {
+    const newError = new Error('It\'s not possible to change the role of the logged in user')
     newError.statusCode = 400
     throw newError
   }

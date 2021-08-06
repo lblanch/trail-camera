@@ -9,6 +9,12 @@ const createNewUser = async (sanitizedUser) => {
 
 const updateUserPassword = async (userId, newPassword) => {
   const userToBeUpdated = await User.findById(userId)
+  if (userToBeUpdated === null) {
+    const newError = new Error('Invalid userId')
+    newError.statusCode = 400
+    throw newError
+  }
+
   userToBeUpdated.passwordHash = await hashPassword(newPassword)
 
   await userToBeUpdated.save()
@@ -16,6 +22,12 @@ const updateUserPassword = async (userId, newPassword) => {
 
 const updateUserRole = async (userId, newRole) => {
   const userToBeUpdated = await User.findById(userId)
+  if (userToBeUpdated === null) {
+    const newError = new Error('Invalid userId')
+    newError.statusCode = 400
+    throw newError
+  }
+
   userToBeUpdated.role = newRole
 
   return await userToBeUpdated.save()
@@ -23,6 +35,12 @@ const updateUserRole = async (userId, newRole) => {
 
 const updateUserProfile = async (userId, name, email) => {
   const userToBeUpdated = await User.findById(userId)
+  if (userToBeUpdated === null) {
+    const newError = new Error('Invalid userId')
+    newError.statusCode = 400
+    throw newError
+  }
+
   userToBeUpdated.name = name
   userToBeUpdated.email = email
 
