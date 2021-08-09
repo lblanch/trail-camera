@@ -93,7 +93,7 @@ describe('Create user with admin user logged in', () => {
 
       const tokenAmountAfter = await Token.estimatedDocumentCount()
 
-      const invitationToken = await Token.findOne({ userId: response.body._id })
+      const invitationToken = await Token.findOne({ userId: response.body._id, type: 'invitation' })
 
       expect(tokenAmountAfter).toEqual(tokenAmountBefore + 1)
       expect(invitationToken).not.toBeNull()

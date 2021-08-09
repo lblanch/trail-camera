@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const usersRouter = require('express').Router()
 
 const userService = require('../services/users')
-const { validatePassword } = require('../utils/authentication')
+const { validatePassword, comparePasswordHash } = require('../utils/authentication')
 const { logInFromSession } = require('../utils/middleware')
 
 
@@ -64,7 +64,7 @@ usersRouter.patch('/registration/:invitationToken', async (request, response) =>
 
   await userService.updateUserPassword(invitationTokenFromDb.userId, request.body.password)
 
-  await userService.deleteInvitationToken(invitationTokenFromDb._id)
+  await userService.deleteToken(invitationTokenFromDb._id)
 
   response.status(200).end()
 })
@@ -74,6 +74,57 @@ usersRouter.patch('/registration/', async () => {
   const newError = new Error('Invitation token missing')
   newError.statusCode = 400
   throw newError
+})
+
+usersRouter.patch('/password/', logInFromSession, async (request, response) => {
+  if (!request.body.password || !request.body.newPassword) {
+    const newError = new Error('Both old and new passwords are required')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const isPasswordCorrect = await comparePasswordHash(request.body.password, request.trailcamUser.passwordHash)
+  if (!isPasswordCorrect) {
+    const newError = new Error('Incorrect password')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  validatePassword(request.body.newPassword)
+
+  await userService.updateUserPassword(request.trailcamUser._id, request.body.newPassword, true)
+
+  response.status(200).end()
+})
+
+usersRouter.patch('/password/:passwordToken', async (request, response) => {
+  if (request.session.user) {
+    const newError = new Error('Password change with a token is not possible with a logged in user. Please logout and try again.')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (!request.body.newPassword) {
+    const newError = new Error('Password missing')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  validatePassword(request.body.newPassword)
+
+  const passwordTokenFormDb = await userService.getPasswordToken(request.params.passwordToken)
+
+  if (!passwordTokenFormDb) {
+    const newError = new Error('Password token is invalid')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  await userService.updateUserPassword(passwordTokenFormDb.userId, request.body.newPassword, true)
+
+  await userService.deleteToken(passwordTokenFormDb._id)
+
+  response.status(200).end()
 })
 
 usersRouter.patch('/:userId', logInFromSession, async (request, response) => {

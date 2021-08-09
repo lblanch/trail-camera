@@ -1,4 +1,4 @@
-const { getSessionUser } = require('../services/users')
+const { getSessionUser, getSessionUserWithHash } = require('../services/users')
 const logger = require('./logger')
 
 // eslint-disable-next-line no-unused-vars
@@ -21,13 +21,20 @@ const errorHandler = (error, request, response, next) => {
 }
 
 const logInFromSession = async (request, response, next) => {
+  let user
   if (!request.session.user) {
     const newError = new Error('No logged in user')
     newError.statusCode = 401
     throw newError
   }
 
-  const user = await getSessionUser(request.session.user)
+  //For most of requests that require a user logged in, we don't need the passwordHash
+  //Only exception is when user is changing their own password
+  if (request.baseUrl + request.path === '/api/users/password') {
+    user = await getSessionUserWithHash(request.session.user)
+  } else {
+    user = await getSessionUser(request.session.user)
+  }
 
   if (!user) {
     const newError = new Error('Invalid user session')

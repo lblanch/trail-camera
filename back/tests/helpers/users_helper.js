@@ -1,6 +1,6 @@
 const Token = require('../../models/token')
 const User = require('../../models/user')
-const { createNewUser, createInvitationToken } = require('../../services/users')
+const { createNewUser, createInvitationToken, createPasswordToken } = require('../../services/users')
 const { hashPassword } = require('../../utils/authentication')
 
 const testAdminUser = {
@@ -79,11 +79,16 @@ const reloadInvitationToken = async (userId) => {
   return await createInvitationToken(userId)
 }
 
+const reloadPasswordToken = async (userId) => {
+  return await createPasswordToken(userId)
+}
+
 module.exports = {
   clearUsers,
   clearTokens,
   reloadAdminUser,
   reloadBasicUser,
   reloadInvitedUser,
-  reloadInvitationToken
+  reloadInvitationToken,
+  reloadPasswordToken
 }

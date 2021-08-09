@@ -7,9 +7,13 @@ const createNewUser = async (sanitizedUser) => {
   return await newUser.save()
 }
 
-const updateUserPassword = async (userId, newPassword) => {
+const updateUserPassword = async (userId, newPassword, isPasswordRecovery = false) => {
   const userToBeUpdated = await User.findById(userId)
   if (userToBeUpdated === null) {
+    const newError = new Error('Invalid userId')
+    newError.statusCode = 400
+    throw newError
+  } else if (isPasswordRecovery && userToBeUpdated.passwordHash === undefined) {
     const newError = new Error('Invalid userId')
     newError.statusCode = 400
     throw newError
@@ -63,7 +67,7 @@ const createInvitationToken = async (savedUserId) => {
   return await newToken.save()
 }
 
-const deleteInvitationToken = async (tokenId) => {
+const deleteToken = async (tokenId) => {
   await Token.deleteOne({ _id: tokenId })
 }
 
@@ -71,8 +75,32 @@ const getInvitationToken = async (token) => {
   return await Token.findOne({ token: token, type: 'invitation' }).select({ userId: 1 })
 }
 
+const createPasswordToken = async (savedUserId) => {
+  const tokenExpiryDate = new Date()
+  tokenExpiryDate.setDate(tokenExpiryDate.getDate() + 7)
+
+  const tokenHash = await createTokenHash()
+
+  const newToken = new Token(
+    {
+      expireAt: tokenExpiryDate,
+      token: tokenHash,
+      type: 'password',
+      userId: savedUserId
+    })
+  return await newToken.save()
+}
+
+const getPasswordToken = async (token) => {
+  return await Token.findOne({ token: token, type: 'password' }).select({ userId: 1 })
+}
+
 const getSessionUser = async (userId) => {
   return await User.findById(userId).select({ passwordHash: 0, __v: 0 })
+}
+
+const getSessionUserWithHash = async (userId) => {
+  return await User.findById(userId).select({ __v: 0 })
 }
 
 const getAllUsers = async () => {
@@ -89,9 +117,12 @@ module.exports = {
   updateUserRole,
   updateUserProfile,
   createInvitationToken,
-  deleteInvitationToken,
+  createPasswordToken,
+  deleteToken,
   getSessionUser,
+  getSessionUserWithHash,
   getAllUsers,
   getLoginUserByEmail,
-  getInvitationToken
+  getInvitationToken,
+  getPasswordToken
 }

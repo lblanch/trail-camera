@@ -38,7 +38,7 @@ test('Register user with a valid invite token returns status 200', async () => {
 
   const tokenAmountAfter = await Token.estimatedDocumentCount()
 
-  const invitationTokenAfter = await Token.findOne({ userId: testInvitedUser.id })
+  const invitationTokenAfter = await Token.findOne({ userId: testInvitedUser.id, type: 'invitation' })
   const userAfter = await User.findById(testInvitedUser.id)
 
   expect(tokenAmountAfter).toEqual(tokenAmountBefore - 1)
