@@ -243,5 +243,19 @@ describe('Create user with admin user logged in', () => {
       expect(error.body).toHaveProperty('error')
       expect(userAmountAfter).toEqual(userAmountBefore)
     })
+
+    test.only('when passed invalid role returns status 400 and error message', async () => {
+      const userAmountBefore = await User.estimatedDocumentCount()
+      const error = await agentAdmin
+        .post('/api/users')
+        .send({ ...newUser, role: 'invalidRole' })
+        .expect(400)
+        .expect('Content-type', /application\/json/)
+
+      const userAmountAfter = await User.estimatedDocumentCount()
+
+      expect(error.body).toHaveProperty('error')
+      expect(userAmountAfter).toEqual(userAmountBefore)
+    })
   })
 })
