@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator')
+const { validateEmail } = require('../utils/validators')
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -7,7 +8,10 @@ const userSchema = new mongoose.Schema({
     minLength: 5,
     unique: true,
     required: true,
-    match: [/\S+@\S+\.\S+/, 'Invalid email address.']
+    validate: {
+      validator: validateEmail,
+      message: 'Invalid email address.'
+    }
   },
   name: {
     type: String,

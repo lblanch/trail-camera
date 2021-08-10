@@ -38,7 +38,7 @@ const updateUserRole = async (userId, newRole) => {
 }
 
 const updateUserProfile = async (userId, name, email) => {
-  const userToBeUpdated = await User.findById(userId)
+  const userToBeUpdated = await User.findById(userId, 'name email')
   if (userToBeUpdated === null) {
     const newError = new Error('Invalid userId')
     newError.statusCode = 400
@@ -69,6 +69,10 @@ const createInvitationToken = async (savedUserId) => {
 
 const deleteToken = async (tokenId) => {
   await Token.deleteOne({ _id: tokenId })
+}
+
+const deletePreviousPasswordToken = async (userId) => {
+  await Token.deleteMany({ userId: userId, type: 'password' })
 }
 
 const getInvitationToken = async (token) => {
@@ -111,6 +115,11 @@ const getLoginUserByEmail = async (email) => {
   return await User.findOne({ email: email }).select({ passwordHash: 1, email: 1, name: 1 })
 }
 
+const getPasswordRecoveryUserByEmail = async (email) => {
+  return await User.findOne({ email: email })
+    .select({ email: 1, name: 1, userType: { $cond: [{ $not: ['$passwordHash'] }, 'invited', 'registered'] } })
+}
+
 module.exports = {
   createNewUser,
   updateUserPassword,
@@ -119,10 +128,12 @@ module.exports = {
   createInvitationToken,
   createPasswordToken,
   deleteToken,
+  deletePreviousPasswordToken,
   getSessionUser,
   getSessionUserWithHash,
   getAllUsers,
   getLoginUserByEmail,
+  getPasswordRecoveryUserByEmail,
   getInvitationToken,
   getPasswordToken
 }

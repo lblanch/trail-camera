@@ -4,6 +4,7 @@ const usersRouter = require('express').Router()
 const userService = require('../services/users')
 const { validatePassword, comparePasswordHash } = require('../utils/authentication')
 const { logInFromSession } = require('../utils/middleware')
+const { validateEmail } = require('../utils/validators')
 
 
 usersRouter.post('/', logInFromSession, async (request, response) => {
@@ -74,6 +75,41 @@ usersRouter.patch('/registration/', async () => {
   const newError = new Error('Invitation token missing')
   newError.statusCode = 400
   throw newError
+})
+
+usersRouter.post('/password', async (request, response) => {
+  if (request.session.user) {
+    const newError = new Error('Password recovery is not possible with a logged in user')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (!request.body.email) {
+    const newError = new Error('Email address missing')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (!validateEmail(request.body.email)) {
+    const newError = new Error('Invalid email address')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const userToRecover = await userService.getPasswordRecoveryUserByEmail(request.body.email)
+
+  if (userToRecover !== null) {
+    if (userToRecover.get('userType') === 'invited') {
+      const newError = new Error('Invited users must first generate their password using the invitation link')
+      newError.statusCode = 400
+      throw newError
+    }
+
+    await userService.deletePreviousPasswordToken(userToRecover._id)
+    await userService.createPasswordToken(userToRecover._id)
+  }
+
+  response.status(200).end()
 })
 
 usersRouter.patch('/password/', logInFromSession, async (request, response) => {
