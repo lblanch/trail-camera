@@ -126,6 +126,29 @@ describe('Update own information', () => {
           .send({ email: testAdminUser.email, password: testAdminUser.password })
       })
 
+      test('and provided already existing email returns status 400 and error message', async () => {
+        testBasicUser = await reloadBasicUser()
+
+        const updatedUser = {
+          name: 'New name',
+          email: testBasicUser.email
+        }
+
+        const error = await agentAdmin
+          .patch('/api/users')
+          .send(updatedUser)
+          .expect(400)
+          .expect('Content-type', /application\/json/)
+
+        const userAfter = await User.findById(testAdminUser.id)
+
+        expect(error.body).toHaveProperty('error')
+        expect(userAfter.name).not.toEqual(updatedUser.name)
+        expect(userAfter.email).not.toEqual(updatedUser.email)
+        expect(userAfter.name).toEqual(testAdminUser.name)
+        expect(userAfter.email).toEqual(testAdminUser.email)
+      })
+
       test('and provided invalid email returns status 400 and error message', async () => {
         const updatedUser = {
           name: 'New name',
