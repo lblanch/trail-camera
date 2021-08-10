@@ -244,7 +244,7 @@ describe('Create user with admin user logged in', () => {
       expect(userAmountAfter).toEqual(userAmountBefore)
     })
 
-    test.only('when passed invalid role returns status 400 and error message', async () => {
+    test('when passed invalid role returns status 400 and error message', async () => {
       const userAmountBefore = await User.estimatedDocumentCount()
       const error = await agentAdmin
         .post('/api/users')

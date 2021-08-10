@@ -1,7 +1,7 @@
 const supertest = require('supertest')
 
 const { connect, disconnect, clearSessionStore } = require('../../app')
-const { reloadAdminUser, clearUsers } = require('../helpers/users_helper')
+const { reloadAdminUser, clearUsers, reloadInvitedUser } = require('../helpers/users_helper')
 
 let api
 let server
@@ -69,6 +69,28 @@ describe('Login', () => {
       expect(error.body).toHaveProperty('error')
     })
 
+    test('when email is missing returns status 401 and error message', async () => {
+      const error = await api
+        .post('/api/login')
+        .send({ password: testUser.password })
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.headers['set-cookie']).toBeUndefined()
+      expect(error.body).toHaveProperty('error')
+    })
+
+    test('when password is missing returns status 401 and error message', async () => {
+      const error = await api
+        .post('/api/login')
+        .send({ email: testUser.email })
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.headers['set-cookie']).toBeUndefined()
+      expect(error.body).toHaveProperty('error')
+    })
+
     test('when passed wrong email returns status 401 and error message', async () => {
       const error = await api
         .post('/api/login')
@@ -96,6 +118,43 @@ describe('Login', () => {
       const error = await api
         .post('/api/login')
         .send({ email: 'invalid email', password: testUser.password })
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.headers['set-cookie']).toBeUndefined()
+      expect(error.body).toHaveProperty('error')
+    })
+
+    test('when passed empty password returns status 401 and error message', async () => {
+      const error = await api
+        .post('/api/login')
+        .send({ email: testUser.email, password: '' })
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.headers['set-cookie']).toBeUndefined()
+      expect(error.body).toHaveProperty('error')
+    })
+
+    test('when invited user tries to login with empty password returns status 401 and error message', async () => {
+      const testInvitedUser = reloadInvitedUser()
+
+      const error = await api
+        .post('/api/login')
+        .send({ email: testInvitedUser.email, password: '' })
+        .expect(401)
+        .expect('Content-type', /application\/json/)
+
+      expect(error.headers['set-cookie']).toBeUndefined()
+      expect(error.body).toHaveProperty('error')
+    })
+
+    test('when invited user tries to login without password returns status 401 and error message', async () => {
+      const testInvitedUser = reloadInvitedUser()
+
+      const error = await api
+        .post('/api/login')
+        .send({ email: testInvitedUser.email })
         .expect(401)
         .expect('Content-type', /application\/json/)
 
