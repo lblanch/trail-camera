@@ -75,6 +75,10 @@ const deletePreviousPasswordToken = async (userId) => {
   await Token.deleteMany({ userId: userId, type: 'password' })
 }
 
+const deletePreviousInvitationToken = async (userId) => {
+  await Token.deleteMany({ userId: userId, type: 'invitation' })
+}
+
 const getInvitationToken = async (token) => {
   return await Token.findOne({ token: token, type: 'invitation' }).select({ userId: 1 })
 }
@@ -120,6 +124,11 @@ const getPasswordRecoveryUserByEmail = async (email) => {
     .select({ email: 1, name: 1, userType: { $cond: [{ $not: ['$passwordHash'] }, 'invited', 'registered'] } })
 }
 
+const getInvitationUser = async (userId) => {
+  return await User.findById(userId)
+    .select({ email: 1, name: 1, userType: { $cond: [{ $not: ['$passwordHash'] }, 'invited', 'registered'] } })
+}
+
 module.exports = {
   createNewUser,
   updateUserPassword,
@@ -129,11 +138,13 @@ module.exports = {
   createPasswordToken,
   deleteToken,
   deletePreviousPasswordToken,
+  deletePreviousInvitationToken,
   getSessionUser,
   getSessionUserWithHash,
   getAllUsers,
   getLoginUserByEmail,
   getPasswordRecoveryUserByEmail,
+  getInvitationUser,
   getInvitationToken,
   getPasswordToken
 }

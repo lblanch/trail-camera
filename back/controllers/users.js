@@ -163,6 +163,51 @@ usersRouter.patch('/password/:passwordToken', async (request, response) => {
   response.status(200).end()
 })
 
+usersRouter.post('/invitation', logInFromSession, async (request, response) => {
+  if (request.trailcamUser.role !== 'admin') {
+    const newError = new Error('Logged in user does not have permission')
+    newError.statusCode = 403
+    throw newError
+  }
+
+  if (!request.body.user) {
+    const newError = new Error('User missing')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (!mongoose.isValidObjectId(request.body.user)) {
+    const newError = new Error('Invalid userId')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (request.trailcamUser._id.toString() === request.body.user) {
+    const newError = new Error('It\'s not possible to invite the logged in user')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const userToInvite = await userService.getInvitationUser(request.body.user)
+
+  if (userToInvite === null) {
+    const newError = new Error('Invalid userId')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (userToInvite.get('userType') === 'registered') {
+    const newError = new Error('Registered users cannot be invited')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  await userService.deletePreviousInvitationToken(userToInvite._id)
+  await userService.createInvitationToken(userToInvite._id)
+
+  response.status(201).end()
+})
+
 usersRouter.patch('/:userId', logInFromSession, async (request, response) => {
   if (request.trailcamUser.role !== 'admin') {
     const newError = new Error('Logged in user does not have permission')
