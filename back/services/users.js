@@ -112,7 +112,15 @@ const getSessionUserWithHash = async (userId) => {
 }
 
 const getAllUsers = async () => {
-  return await User.find({}).select({ passwordHash: 0, __v: 0 })
+  return await User.find({}).select({
+    email: 1,
+    name: 1,
+    createdBy: 1,
+    role: 1,
+    updatedAt: 1,
+    createdAt:1,
+    status: { $cond: [{ $not: ['$passwordHash'] }, 'invited', 'registered'] }
+  })
 }
 
 const getLoginUserByEmail = async (email) => {

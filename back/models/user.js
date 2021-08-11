@@ -30,12 +30,7 @@ const userSchema = new mongoose.Schema({
   createdBy: {
     type: String,
     required: true
-  },
-  status: {
-    type: String,
-    default: 'pending',
-    required: true
-  },
+  }
 }, { timestamps: true })
 
 userSchema.plugin(uniqueValidator)
