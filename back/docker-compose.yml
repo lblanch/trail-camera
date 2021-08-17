@@ -1,0 +1,9 @@
+version: '3.9'
+#docker compose will create a docker network for all services described
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    env_file:
+      - .env.docker
