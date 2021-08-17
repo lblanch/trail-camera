@@ -7,28 +7,35 @@ on:
   push:
     branches: [ main ]
 
+defaults:
+  run:
+    working-directory: back
+
 jobs:
   test:
 
     runs-on: ubuntu-latest
 
+    environment: CI
+
     strategy:
       matrix:
         node-version: [12.x, 14.x, 16.x]
-        mongodb-version: ['4.0', '4.2', '4.4, '5.0']
+        mongodb-version: ['4.0', '4.2', '4.4', '5.0']
 
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
-      working-directory: ./back
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: back/package-lock.json
     - name: MongoDB in GitHub Actions
       uses: supercharge/mongodb-github-action@1.6.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
     - name: Run tests
-      working-directory: ./back
-      run: npm test
+      run: |
+        npm ci
+        npm test
