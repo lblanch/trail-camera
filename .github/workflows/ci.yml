@@ -13,10 +13,9 @@ defaults:
 
 jobs:
   test:
-
-    runs-on: ubuntu-latest
-
     environment: CI
+    
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
