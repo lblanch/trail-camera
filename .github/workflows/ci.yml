@@ -36,6 +36,8 @@ jobs:
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
     - name: Run tests
+      env: 
+        TEST_MONGODB_URI: mongodb://localhost:27017/test
       run: |
         npm ci
         npm test
