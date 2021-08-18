@@ -34,11 +34,12 @@ jobs:
       uses: supercharge/mongodb-github-action@1.6.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
-    - name: Run tests
+    - name: Run linter and tests
       env: 
         SECRET: ${{ secrets.SECRET }}
         TEST_MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
         PORT: ${{ secrets.PORT }}
       run: |
         npm ci
+        npm run lint
         npm test
