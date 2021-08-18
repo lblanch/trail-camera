@@ -92,7 +92,7 @@ const upsertEmailWithAttachments = {
     signal: 'Good',
     'sd-card-free-space': '14.42 GB of 14.91 GB(96.71%)'
   },
-  mediaDate: new Date('2021-02-05T18:42:44.000Z'),
+  mediaDate: new Date('2021-02-05T20:42:44.000Z'),
   mediaThumbnailURL: 'https://someMediaUrl.com/myPic.jpg',
   mediaURL: 'https://someMediaUrl.com/myPic.jpg'
 }

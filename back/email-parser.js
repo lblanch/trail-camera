@@ -34,7 +34,7 @@ const parseEmail = async (downloadedEmailContent) => {
     if (emailInfoJson.date && emailInfoJson.time) {
       const dateSplit = emailInfoJson.date.split('.')
       const timeSplit = emailInfoJson.time.split(':')
-      newCameraInput.mediaDate = new Date(`20${dateSplit[2]}`, dateSplit[1]-1, dateSplit[0], timeSplit[0], timeSplit[1], timeSplit[2])
+      newCameraInput.mediaDate = new Date(Date.UTC(`20${dateSplit[2]}`, dateSplit[1]-1, dateSplit[0], timeSplit[0], timeSplit[1], timeSplit[2]))
     } else {
       logger.info(LOG_TAG, 'email body does not have date/time, using email delivery date')
       newCameraInput.mediaDate = newCameraInput.emailDeliveryDate
