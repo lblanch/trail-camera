@@ -16,6 +16,8 @@ const errorHandler = (error, request, response, next) => {
     }
     response.status(error.statusCode).send({ error: error.message })
   } else {
+    // Log error to console (instead of using logger) so it is visible on tests
+    console.error(error)
     response.status(500).send({ error: error.message })
   }
 }
