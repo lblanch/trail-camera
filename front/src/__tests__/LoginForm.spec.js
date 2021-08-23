@@ -1,5 +1,5 @@
 import React from 'react'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import LoginForm from '../components/LoginForm'
@@ -13,20 +13,22 @@ describe('<LoginForm />', () => {
 
     const mockHandler = jest.fn()
 
-    const loginComponent = render(<LoginForm loginUser={mockHandler}/>)
+    render(<LoginForm loginUser={mockHandler}/>)
 
     userEvent.type(
-      loginComponent.getByLabelText('Email'),
+      screen.getByLabelText('Email'),
       testCredentials.email,
     )
 
     userEvent.type(
-      loginComponent.getByLabelText('Password'),
+      screen.getByLabelText('Password'),
       testCredentials.password,
     )
 
-    userEvent.click(loginComponent.getByRole('button', { name: 'Login' }))
+    userEvent.click(screen.getByRole('button', { name: 'Login' }))
 
+    expect(screen.getByLabelText('Email')).toHaveValue('')
+    expect(screen.getByLabelText('Password')).toHaveValue('')
     expect(mockHandler).toHaveBeenCalled()
     expect(mockHandler).toHaveBeenCalledWith(testCredentials)
   })

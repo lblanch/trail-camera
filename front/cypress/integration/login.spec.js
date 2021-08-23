@@ -19,7 +19,31 @@ describe('Login in', () => {
     // our auth cookie should be present
     cy.getCookie('sid').should('exist')
 
+    cy.get('div[name="notification"]').should('not.exist')
+
     // UI should reflect this user being logged in
     cy.get('h1').should('contain', 'Person1')
+  })
+
+  it('Shows error message and clears form when login is unsuccessful', () => {
+    cy.visit('/login')
+
+    cy.get('input[name="email"]')
+      .type('wrong.email@email.com')
+
+    cy.get('input[name="password"]')
+      .type('wrongpassword')
+
+    cy.get('button[name="login-button"]')
+      .click()
+
+    cy.get('input[name="email"]').should('be.empty')
+    cy.get('input[name="password"]').should('be.empty')
+
+    cy.get('div[name="notification"]').should('exist')
+
+    cy.url().should('not.include', '/dashboard')
+
+    cy.getCookie('sid').should('not.exist')
   })
 })

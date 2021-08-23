@@ -3,22 +3,26 @@ import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-d
 
 import LoginForm from './components/LoginForm'
 import Dashboard from './components/Dashboard'
+import Notification from './components/Notification'
 import loginServices from './services/login'
 
 const App = () => {
   const [user, setUser] = useState(null)
+  const [message, setMessage] = useState('')
 
   const loginUser = async (credentials) => {
     try {
       const loggedUser = await loginServices.login(credentials)
       setUser(loggedUser)
+      setMessage('')
     } catch (error) {
-      //show error
+      setMessage(error.response.data.error)
     }
   }
 
   return (
     <Router>
+      <Notification message={message} />
       <Switch>
         <Route path="/login">
           { user === null

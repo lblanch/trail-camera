@@ -5,11 +5,14 @@ const LoginForm = ({ loginUser }) => {
     event.preventDefault()
 
     //event.target.email.value would not work when testing
-    const data = new FormData(event.target)
+    const { email, password } = event.target.elements
     const credentials = {
-      email: data.get('email'),
-      password: data.get('password')
+      email: email.value,
+      password: password.value
     }
+
+    email.value = ''
+    password.value = ''
 
     await loginUser(credentials)
   }
