@@ -1,5 +1,8 @@
 const Recording = require('../../models/recording')
 
+const defaultMediaUrl = 'https://example.com/pics/IMG1.jpg'
+const defaultMediaThumbnailURL = 'https://example.com/pics/IMG1.jpg'
+
 const initialRecordings = [
   {
     date: new Date(Date.UTC(2021, 1, 7, 8, 42, 44)),
@@ -19,8 +22,8 @@ const initialRecordings = [
       sentFrom: 'sender name <sender@example.com>',
       subject: 'UM785 (Europe)|05.02.2021 20:42:44',
       mediaType: 'picture',
-      mediaThumbnailURL: 'https://example.com/pics/IMG1.jpg',
-      mediaURL: 'https://example.com/pics/IMG1.jpg',
+      mediaThumbnailURL: defaultMediaUrl,
+      mediaURL: defaultMediaThumbnailURL,
     }
   },
   {
@@ -41,8 +44,8 @@ const initialRecordings = [
       sentFrom: 'sender name <sender@example.com>',
       subject: 'UM785 (Europe)|05.02.2021 20:42:44',
       mediaType: 'picture',
-      mediaThumbnailURL: 'https://example.com/pics/IMG1.jpg',
-      mediaURL: 'https://example.com/pics/IMG1.jpg',
+      mediaThumbnailURL: defaultMediaUrl,
+      mediaURL: defaultMediaThumbnailURL,
     }
   },
   {
@@ -63,8 +66,8 @@ const initialRecordings = [
       sentFrom: 'sender name <sender@example.com>',
       subject: 'UM785 (Europe)|05.02.2021 20:42:44',
       mediaType: 'picture',
-      mediaThumbnailURL: 'https://example.com/pics/IMG1.jpg',
-      mediaURL: 'https://example.com/pics/IMG1.jpg',
+      mediaThumbnailURL: defaultMediaUrl,
+      mediaURL: defaultMediaThumbnailURL,
     }
   },
   {
@@ -85,8 +88,8 @@ const initialRecordings = [
       sentFrom: 'sender name <sender@example.com>',
       subject: 'UM785 (Europe)|05.02.2021 20:42:44',
       mediaType: 'picture',
-      mediaThumbnailURL: 'https://example.com/pics/IMG1.jpg',
-      mediaURL: 'https://example.com/pics/IMG1.jpg',
+      mediaThumbnailURL: defaultMediaUrl,
+      mediaURL: defaultMediaThumbnailURL,
     }
   }
 ]
@@ -95,14 +98,21 @@ const clearRecordings = async () => {
   await Recording.deleteMany({})
 }
 
-const reloadRecordings = async () => {
+const reloadRecordings = async (imageUrl = '', thumbnailUrl = '') => {
   //Store all returned promises to an array, and call them with Promise.all, which will
   //await each of them and finish once they are all finished.
-  const promisesArray = initialRecordings.map(createUpdatePromise)
+  const promisesArray = initialRecordings.map((recording) => createUpdatePromise(recording, imageUrl, thumbnailUrl))
   await Promise.all(promisesArray)
 }
 
-const createUpdatePromise = (recording) => {
+const createUpdatePromise = (recording, imageUrl, thumbnailUrl) => {
+  if (imageUrl !== '') {
+    recording.recording.mediaURL = imageUrl
+  }
+  if (thumbnailUrl !== '') {
+    recording.recording.mediaThumbnailURL = thumbnailUrl
+  }
+
   const justDate = new Date(Date.UTC(recording.date.getUTCFullYear(), recording.date.getUTCMonth(), recording.date.getUTCDate()))
   return Recording.updateOne(
     { 'date': justDate, 'count': { $lt: 20 } },

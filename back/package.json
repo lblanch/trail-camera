@@ -11,6 +11,8 @@
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test jest --verbose --runInBand --detectOpenHandles",
     "test:verbose": "NODE_ENV=development jest --verbose --runInBand --detectOpenHandles",
+    "seed": "NODE_ENV=test node seed-db.js",
+    "seed:dev": "NODE_ENV=development node seed-db.js",
     "lint": "eslint ."
   },
   "keywords": [],
