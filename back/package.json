@@ -44,7 +44,7 @@
     "hoodiecrow-imap": "^2.1.0",
     "jest": "^27.0.0",
     "nodemon": "^2.0.7",
-    "pino-pretty": "^5.1.1",
+    "pino-pretty": "^6.0.0",
     "supertest": "^6.1.3"
   }
 }

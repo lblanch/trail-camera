@@ -1,5 +1,6 @@
 const authRouter = require('express').Router()
 
+const { logInFromSession } = require('../utils/middleware')
 const { comparePasswordHash } = require('../utils/authentication')
 const { getLoginUserByEmail } = require('../services/users')
 
@@ -27,6 +28,18 @@ authRouter.post('/login', async (request, response) => {
   response
     .status(200)
     .send({ name: user.name, email: user.email })
+})
+
+authRouter.post('/logout', logInFromSession, async (request, response) => {
+  request.session.destroy((error) => {
+    if (error) {
+      throw error
+    }
+
+    response.clearCookie('sid')
+
+    response.status(200).end()
+  })
 })
 
 module.exports = authRouter
