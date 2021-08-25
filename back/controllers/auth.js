@@ -42,4 +42,13 @@ authRouter.post('/logout', logInFromSession, async (request, response) => {
   })
 })
 
+authRouter.get('/', logInFromSession, (request, response) => {
+  response
+    .status(200)
+    .send({
+      email: request.trailcamUser.email,
+      name: request.trailcamUser.name
+    })
+})
+
 module.exports = authRouter
