@@ -40,7 +40,7 @@ test('Get all existing users as non admin returns status 403 and error message',
   testBasicUser = await reloadBasicUser()
 
   await agentBasic
-    .post('/api/login')
+    .post('/api/auth/login')
     .send({ email: testBasicUser.email, password: testBasicUser.password })
 
   const error = await agentBasic
@@ -54,7 +54,7 @@ test('Get all existing users as non admin returns status 403 and error message',
 test('Get all existing users as admin returns status 200 and the user\'s relevant data', async () => {
   //login with Admin user
   await agentAdmin
-    .post('/api/login')
+    .post('/api/auth/login')
     .send({ email: testAdminUser.email, password: testAdminUser.password })
 
   const users = await agentAdmin

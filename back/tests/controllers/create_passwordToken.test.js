@@ -133,7 +133,7 @@ describe('unsuccessful', () => {
 
   test('When logged in, returns status 400 and error message', async () => {
     await agentAdmin
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testAdminUser.email, password: testAdminUser.password })
 
     const tokenAmountBefore = await Token.estimatedDocumentCount()

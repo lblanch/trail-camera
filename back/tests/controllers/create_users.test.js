@@ -54,7 +54,7 @@ test('Create user with non admin user logged in returns status 403 and error mes
   //create basic user and login
   testBasicUser = await reloadBasicUser()
   await agentBasic
-    .post('/api/login')
+    .post('/api/auth/login')
     .send({ email: testBasicUser.email, password: testBasicUser.password })
 
   const userAmountBefore = await User.estimatedDocumentCount()
@@ -74,7 +74,7 @@ describe('Create user with admin user logged in', () => {
   beforeEach(async () => {
     //login with Admin user
     await agentAdmin
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testAdminUser.email, password: testAdminUser.password })
   })
 

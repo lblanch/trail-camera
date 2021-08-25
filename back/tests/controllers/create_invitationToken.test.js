@@ -52,7 +52,7 @@ test('When logged in as a non admin user, returns status 403 and error message',
   const testBasicUser = await reloadBasicUser()
 
   await agentBasic
-    .post('/api/login')
+    .post('/api/auth/login')
     .send({ email: testBasicUser.email, password: testBasicUser.password })
 
   const tokenAmountBefore = await Token.estimatedDocumentCount()
@@ -74,7 +74,7 @@ test('When logged in as a non admin user, returns status 403 and error message',
 describe('When admin user is logged in', () => {
   beforeEach(async () => {
     await agentAdmin
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testAdminUser.email, password: testAdminUser.password })
   })
 

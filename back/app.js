@@ -10,7 +10,7 @@ require('dotenv').config()
 const { requestLogger, errorHandler } = require('./utils/middleware')
 const logger = require('./utils/logger')
 
-const loginRouter = require('./controllers/login')
+const authRouter = require('./controllers/auth')
 const usersRouter = require('./controllers/users')
 const recordingsRouter = require('./controllers/recordings')
 
@@ -58,7 +58,7 @@ app.use(session({
 
 app.use(requestLogger)
 
-app.use('/api/login', loginRouter)
+app.use('/api/auth', authRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/recordings', recordingsRouter)
 

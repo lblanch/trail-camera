@@ -34,7 +34,7 @@ afterAll(async () => {
 describe('When user is logged in', () => {
   beforeEach(async () => {
     await agentAdmin
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testAdminUser.email, password: testAdminUser.password })
   })
 
@@ -183,7 +183,7 @@ describe('When user is logged in', () => {
 test('When basic user is logged in and correct old password and valid new passwords are provided, password is successfully updated and returns status 200', async () => {
   testBasicUser = await reloadBasicUser()
   await agentBasic
-    .post('/api/login')
+    .post('/api/auth/login')
     .send({ email: testBasicUser.email, password: testBasicUser.password })
 
   const newPassword = 'newPasswordForAdmin'

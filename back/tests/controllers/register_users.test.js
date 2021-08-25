@@ -152,7 +152,7 @@ describe('unsuccessful user registration', () => {
   test('when someone is already logged in, returns status 400 and error message', async () => {
     const testAdminUser = await reloadAdminUser()
     const response = await api
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testAdminUser.email, password: testAdminUser.password })
       .expect(200)
       .expect('Content-type', /application\/json/)

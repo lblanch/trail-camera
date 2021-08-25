@@ -23,13 +23,13 @@ beforeAll(async () => {
   //create and login Basic user
   testBasicUser = await reloadBasicUser()
   await agentBasic
-    .post('/api/login')
+    .post('/api/auth/login')
     .send({ email: testBasicUser.email, password: testBasicUser.password })
 
   //login with Admin user
   testAdminUser = await reloadAdminUser()
   await agentAdmin
-    .post('/api/login')
+    .post('/api/auth/login')
     .send({ email: testAdminUser.email, password: testAdminUser.password })
 })
 

@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-d
 import LoginForm from './components/LoginForm'
 import Dashboard from './components/Dashboard'
 import Notification from './components/Notification'
-import loginServices from './services/login'
+import authServices from './services/auth'
 
 const App = () => {
   const [user, setUser] = useState(null)
@@ -12,7 +12,7 @@ const App = () => {
 
   const loginUser = async (credentials) => {
     try {
-      const loggedUser = await loginServices.login(credentials)
+      const loggedUser = await authServices.login(credentials)
       setUser(loggedUser)
       setMessage('')
     } catch (error) {

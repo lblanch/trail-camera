@@ -33,7 +33,7 @@ describe('Update own information', () => {
   describe('successfully', () => {
     test('When logged in as admin and provided valid data, user profile is updated and returns status 200', async () => {
       await agentAdmin
-        .post('/api/login')
+        .post('/api/auth/login')
         .send({ email: testAdminUser.email, password: testAdminUser.password })
 
       const updatedUser = {
@@ -55,7 +55,7 @@ describe('Update own information', () => {
       testBasicUser = await reloadBasicUser()
 
       await agentBasic
-        .post('/api/login')
+        .post('/api/auth/login')
         .send({ email: testBasicUser.email, password: testBasicUser.password })
 
       const updatedUser = {
@@ -75,7 +75,7 @@ describe('Update own information', () => {
 
     test('When logged in and provided name, email and other fields, only name and email are updated and returns status 200', async () => {
       await agentAdmin
-        .post('/api/login')
+        .post('/api/auth/login')
         .send({ email: testAdminUser.email, password: testAdminUser.password })
 
       const updatedUser = {
@@ -122,7 +122,7 @@ describe('Update own information', () => {
     describe('when logged in', () => {
       beforeEach(async () => {
         await agentAdmin
-          .post('/api/login')
+          .post('/api/auth/login')
           .send({ email: testAdminUser.email, password: testAdminUser.password })
       })
 
@@ -234,7 +234,7 @@ describe('Update other use\'s role', () => {
 
   test('when admin user is logged and valid userId and role are provided, role is successfully updated and returns status 200', async () => {
     await agentAdmin
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testAdminUser.email, password: testAdminUser.password })
 
     const result = await agentAdmin
@@ -257,7 +257,7 @@ describe('Update other use\'s role', () => {
 
   test('valid userId, missing role but other values provided, returns status 400 and error message', async () => {
     await agentAdmin
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testAdminUser.email, password: testAdminUser.password })
 
     const updateAttempt = {
@@ -291,7 +291,7 @@ describe('Update other use\'s role', () => {
   describe('unsuccessfully when admin user is logged in', () => {
     beforeEach(async () => {
       await agentAdmin
-        .post('/api/login')
+        .post('/api/auth/login')
         .send({ email: testAdminUser.email, password: testAdminUser.password })
     })
 
@@ -385,7 +385,7 @@ describe('Update other use\'s role', () => {
 
   test('unsuccessfully when non-admin user is logged in, returns status 403 and error message', async () => {
     await agentBasic
-      .post('/api/login')
+      .post('/api/auth/login')
       .send({ email: testBasicUser.email, password: testBasicUser.password })
 
     const error = await agentBasic

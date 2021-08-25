@@ -1,9 +1,9 @@
-const loginRouter = require('express').Router()
+const authRouter = require('express').Router()
 
 const { comparePasswordHash } = require('../utils/authentication')
 const { getLoginUserByEmail } = require('../services/users')
 
-loginRouter.post('/', async (request, response) => {
+authRouter.post('/login', async (request, response) => {
   if (request.session.user) {
     const newError = new Error('A user is already logged in')
     newError.statusCode = 400
@@ -29,4 +29,4 @@ loginRouter.post('/', async (request, response) => {
     .send({ name: user.name, email: user.email })
 })
 
-module.exports = loginRouter
+module.exports = authRouter
