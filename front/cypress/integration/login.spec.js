@@ -1,4 +1,4 @@
-describe('Login in', () => {
+describe('Login', () => {
   before(() => {
     const options = '{"recordings": false, "adminUser": true, "basicUser": false}'
     const url = 'http://localhost:3000/public/img.jpg'
@@ -23,16 +23,13 @@ describe('Login in', () => {
 
     cy.get('form[name="login-form"]').should('not.exist')
 
-    // we should be redirected to /dashboard
     cy.url().should('include', '/dashboard')
 
-    // our auth cookie should be present
     cy.getCookie('sid').should('exist')
 
     cy.get('div[name="notification"]').should('not.exist')
 
-    // UI should reflect this user being logged in
-    cy.get('h1').should('contain', 'Person1')
+    cy.get('div[name="app-header"]').should('contain', 'Person1')
   })
 
   it('Shows error message and clears form when login is unsuccessful', () => {

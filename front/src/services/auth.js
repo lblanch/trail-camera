@@ -7,6 +7,16 @@ const login = async (credentials) => {
   return response.data
 }
 
-const loginServices = { login }
+const logout = async () => {
+  const response = await axios.post(`${baseUrl}/logout`)
+  return response.data
+}
+
+const auth = async () => {
+  const response = await axios.get(baseUrl)
+  return response.data
+}
+
+const loginServices = { login, logout, auth }
 
 export default loginServices

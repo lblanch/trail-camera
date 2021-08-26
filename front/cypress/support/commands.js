@@ -23,3 +23,17 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('loginAdmin', () => {
+  cy.request('POST', 'api/auth/login', {
+    email: 'person1@email.com',
+    password: '123456789101112',
+  })
+})
+
+Cypress.Commands.add('loginBasic', () => {
+  cy.request('POST', 'api/auth/login', {
+    email: 'basic.user@email.com',
+    password: '123456789101112',
+  })
+})

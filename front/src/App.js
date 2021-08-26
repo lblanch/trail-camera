@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom'
 
 import LoginForm from './components/LoginForm'
@@ -8,13 +8,44 @@ import authServices from './services/auth'
 
 const App = () => {
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const fetchAuthData = async () => {
+      try {
+        const response = await authServices.auth()
+        setUser(response)
+      } catch(error) {
+        if (error.response.data.error)
+          console.log(error.response.data.error)
+        else
+          console.log(error.response.data)
+      }
+      setLoading(false)
+    }
+
+    fetchAuthData()
+  }, [])
 
   const loginUser = async (credentials) => {
     try {
       const loggedUser = await authServices.login(credentials)
       setUser(loggedUser)
       setMessage('')
+    } catch (error) {
+      if (error.response.data.error)
+        setMessage(error.response.data.error)
+      else
+        setMessage(error.response.data)
+    }
+  }
+
+  const logoutUser = async () => {
+    try {
+      await authServices.logout()
+      setUser(null)
+      setMessage('Logout successful')
     } catch (error) {
       if (error.response.data.error)
         setMessage(error.response.data.error)
@@ -34,13 +65,13 @@ const App = () => {
           }
         </Route>
         <Route path="/dashboard">
-          { user === null
+          { user === null && !loading
             ? <Redirect to="/login" />
-            : <Dashboard name={user.name}/>
+            : <Dashboard user={user} loading={loading} logout={logoutUser}/>
           }
         </Route>
         <Route>
-          { user === null
+          { user === null && !loading
             ? <Redirect to="/login" />
             : <Redirect to="/dashboard" />
           }
