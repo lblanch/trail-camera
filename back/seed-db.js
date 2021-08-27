@@ -5,24 +5,18 @@ const recordingsHelper = require('./tests/helpers/recordings_helper')
 const usersHelper = require('./tests/helpers/users_helper')
 const logger = require('./utils/logger')
 
-let mediaUrl = ''
-let mediaThumbnailUrl = ''
 let seedingOptions = {
   recordings: true,
   adminUser: true,
   basicUser: true,
-  invitedUser: false
+  invitedUser: false,
+  mediaThumbnailUrl: '',
+  mediaUrl: ''
 }
 
 //first 2 arguments are node + script path, custom arguments come afterwards
 if (process.argv.length > 2) {
-  mediaUrl = process.argv[2]
-  if (process.argv.length > 3) {
-    mediaThumbnailUrl = process.argv[3]
-    if (process.argv.length > 4) {
-      seedingOptions = { ...seedingOptions, ...JSON.parse(process.argv[4]) }
-    }
-  }
+  seedingOptions = { ...seedingOptions, ...JSON.parse(process.argv[2]) }
 }
 
 const seedDb = async () => {
@@ -40,8 +34,8 @@ const seedDb = async () => {
   logger.info('All collections dropped')
 
   if (seedingOptions.recordings) {
-    logger.info('reloading recordings', mediaUrl, mediaThumbnailUrl)
-    await recordingsHelper.reloadRecordings(mediaUrl, mediaThumbnailUrl)
+    logger.info('reloading recordings', seedingOptions.mediaUrl, seedingOptions.mediaThumbnailUrl)
+    await recordingsHelper.reloadRecordings(seedingOptions.mediaUrl, seedingOptions.mediaThumbnailUrl)
   }
 
   if (seedingOptions.adminUser) {

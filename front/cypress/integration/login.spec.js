@@ -1,8 +1,7 @@
 describe('Login', () => {
   before(() => {
-    const options = '{"recordings": false, "adminUser": true, "basicUser": false}'
-    const url = 'http://localhost:3000/public/img.jpg'
-    cy.exec(`npm run --prefix ../back seed:dev -- ${url} ${url} '${options}'`)
+    const options = '{"recordings": false, "basicUser": false}'
+    cy.exec(`npm run --prefix ../back seed:dev -- '${options}'`)
       .then((result) => {
         console.log(result.stdout)
       })
