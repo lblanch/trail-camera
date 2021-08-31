@@ -32,8 +32,10 @@ describe('Login', () => {
       .expect('Content-type', /application\/json/)
       .expect('set-cookie', /^sid=.+/)
 
+    expect(Object.keys(response.body)).toHaveLength(3)
     expect(response.body.name).toEqual(testUser.name)
     expect(response.body.email).toEqual(testUser.email)
+    expect(response.body.role).toEqual(testUser.role)
   })
 
   describe('unsuccessful login', () => {

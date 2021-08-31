@@ -27,7 +27,7 @@ authRouter.post('/login', async (request, response) => {
 
   response
     .status(200)
-    .send({ name: user.name, email: user.email })
+    .send({ name: user.name, email: user.email, role: user.role })
 })
 
 authRouter.post('/logout', logInFromSession, async (request, response) => {
@@ -47,7 +47,8 @@ authRouter.get('/', logInFromSession, (request, response) => {
     .status(200)
     .send({
       email: request.trailcamUser.email,
-      name: request.trailcamUser.name
+      name: request.trailcamUser.name,
+      role: request.trailcamUser.role
     })
 })
 

@@ -34,9 +34,10 @@ test('When a valid session cookie is provided, it returns status 200 and the use
     .expect(200)
     .expect('Content-type', /application\/json/)
 
-  expect(Object.keys(response.body)).toHaveLength(2)
+  expect(Object.keys(response.body)).toHaveLength(3)
   expect(response.body.email).toEqual(adminUser.email)
   expect(response.body.name).toEqual(adminUser.name)
+  expect(response.body.role).toEqual(adminUser.role)
 })
 
 test('When no session cookie is provided, it returns status 401 and an error message', async () => {

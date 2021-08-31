@@ -124,7 +124,7 @@ const getAllUsers = async () => {
 }
 
 const getLoginUserByEmail = async (email) => {
-  return await User.findOne({ email: email }).select({ passwordHash: 1, email: 1, name: 1 })
+  return await User.findOne({ email: email }).select({ passwordHash: 1, email: 1, name: 1, role: 1 })
 }
 
 const getPasswordRecoveryUserByEmail = async (email) => {
