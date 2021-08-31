@@ -23,13 +23,14 @@ afterAll(async () => {
 })
 
 describe('when document with same date already exists', () => {
-  test('when document with same date already exists, and it has less than 20 records, updates recordings array', async () => {
+  test('it has less than 20 records, updates recordings array', async () => {
     upsertEmailWithAttachments.mediaDate.setDate(5)
 
     const result = await upsertRecording(upsertEmailWithAttachments)
     const recordingAmountAfter = await Recording.estimatedDocumentCount()
 
-    const updatedRecording = await Recording.findOne({ 'earliestTime': initialRecordings[3].date.getTime() })
+    const earliestTime = new Date(initialRecordings[3].date).getTime()
+    const updatedRecording = await Recording.findOne({ 'earliestTime': earliestTime })
     let updatedRecordingEntry = JSON.parse(JSON.stringify(updatedRecording.recordings[updatedRecording.count - 1]))
     delete updatedRecordingEntry._id
 
@@ -40,7 +41,7 @@ describe('when document with same date already exists', () => {
     expect(JSON.stringify(updatedRecordingEntry)).toEqual(JSON.stringify(upsertEmailWithAttachments))
   })
 
-  test('when document with same date already exists, and it has 20 records, creates new document with same date', async () => {
+  test('it has 20 records, creates new document with same date', async () => {
     upsertEmailWithAttachments.mediaDate.setDate(7)
 
     const result = await upsertRecording(upsertEmailWithAttachments)

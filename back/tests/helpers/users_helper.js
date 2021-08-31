@@ -1,31 +1,12 @@
+const usersJSON = require('../../../test-data/users.json')
 const Token = require('../../models/token')
 const User = require('../../models/user')
 const { createNewUser, createInvitationToken, createPasswordToken } = require('../../services/users')
 const { hashPassword } = require('../../utils/authentication')
 
-const testAdminUser = {
-  name: 'Person1',
-  email: 'person1@email.com',
-  password: '123456789101112',
-  role: 'admin',
-  createdBy: '-'
-}
-
-const testBasicUser = {
-  name: 'Basic',
-  email: 'basic.user@email.com',
-  password: '123456789101112',
-  role: 'user',
-  createdBy: testAdminUser.email
-}
-
-const testInvitedUser = {
-  name: 'Invited',
-  email: 'invited.user@email.com',
-  password: '123456789101112',
-  role: 'user',
-  createdBy: testAdminUser.email
-}
+const testAdminUser = usersJSON.admin
+const testBasicUser = usersJSON.basic
+const testInvitedUser = usersJSON.invited
 
 const clearUsers = async () => {
   await User.deleteMany({})

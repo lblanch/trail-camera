@@ -1,0 +1,24 @@
+{
+  "admin": {
+    "name": "Person1",
+    "email": "person1@email.com",
+    "password": "123456789101112",
+    "role": "admin",
+    "createdBy": "-"
+  },
+  "basic": {
+    "name": "Basic",
+    "email": "basic.user@email.com",
+    "password": "123456789101112",
+    "role": "user",
+    "createdBy": "person1@email.com"
+  },
+  "invited":
+  {
+    "name": "Invited",
+    "email": "invited.user@email.com",
+    "password": "123456789101112",
+    "role": "user",
+    "createdBy": "person1@email.com"
+  }
+}
