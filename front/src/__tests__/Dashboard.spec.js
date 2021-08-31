@@ -2,6 +2,8 @@ import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
+
+import usersJSON from '../../../test-data/users.json'
 import Dashboard from '../components/Dashboard'
 
 describe('<Dashboard />', () => {
@@ -12,7 +14,7 @@ describe('<Dashboard />', () => {
   })
 
   test('shows skeleton while loading data even if user is not null', () => {
-    const user = { name: 'Person1', email: 'person1@email.com' }
+    const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
     render(<Dashboard user={user} loading={true}/>)
     expect(screen.queryByText('TrailCam')).not.toBeVisible()
     expect(screen.queryByText(user.name)).not.toBeVisible()
@@ -25,7 +27,7 @@ describe('<Dashboard />', () => {
   })
 
   test('shows header with user\'s name when loading is false and user is not null', () => {
-    const user = { name: 'Person1', email: 'person1@email.com' }
+    const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
     render(<Dashboard user={user} loading={false}/>)
     expect(screen.queryByText('TrailCam')).toBeVisible()
     expect(screen.queryByText(user.name)).toBeVisible()
@@ -33,7 +35,7 @@ describe('<Dashboard />', () => {
   })
 
   test('when user\'s avatar is clicked, menu opens', async () => {
-    const user = { name: 'Person1', email: 'person1@email.com' }
+    const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
     render(<Dashboard user={user} loading={false}/>)
 
     expect(screen.getByText('Profile')).not.toBeVisible()
@@ -52,7 +54,7 @@ describe('<Dashboard />', () => {
   })
 
   test('when clicking logout on the user\'s menu, it calls the logout handler function', async () => {
-    const user = { name: 'Person1', email: 'person1@email.com' }
+    const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
     const mockHandler = jest.fn()
 
     render(<Dashboard user={user} loading={false} logout={mockHandler}/>)

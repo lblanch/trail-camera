@@ -1,3 +1,5 @@
+import usersJSON from '../../../test-data/users.json'
+
 describe('Login', () => {
   before(() => {
     const options = '{"recordings": false, "basicUser": false}'
@@ -12,10 +14,10 @@ describe('Login', () => {
     cy.visit('/login')
 
     cy.get('input[name="email"]')
-      .type('person1@email.com')
+      .type(usersJSON.admin.email)
 
     cy.get('input[name="password"]')
-      .type('123456789101112')
+      .type(usersJSON.admin.password)
 
     cy.get('button[name="login-button"]')
       .click()
@@ -28,7 +30,7 @@ describe('Login', () => {
 
     cy.get('div[name="notification"]').should('not.exist')
 
-    cy.get('div[name="app-header"]').should('contain', 'Person1')
+    cy.get('div[name="app-header"]').should('contain', usersJSON.admin.name)
   })
 
   it('Shows error message and clears form when login is unsuccessful', () => {

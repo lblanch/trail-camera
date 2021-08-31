@@ -24,16 +24,18 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+import usersJSON from '../../../test-data/users.json'
+
 Cypress.Commands.add('loginAdmin', () => {
   cy.request('POST', 'api/auth/login', {
-    email: 'person1@email.com',
-    password: '123456789101112',
+    email: usersJSON.admin.email,
+    password: usersJSON.admin.password,
   })
 })
 
 Cypress.Commands.add('loginBasic', () => {
   cy.request('POST', 'api/auth/login', {
-    email: 'basic.user@email.com',
-    password: '123456789101112',
+    email: usersJSON.basic.email,
+    password: usersJSON.basic.password,
   })
 })
