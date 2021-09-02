@@ -29,7 +29,7 @@ describe('when document with same date already exists', () => {
     const result = await upsertRecording(upsertEmailWithAttachments)
     const recordingAmountAfter = await Recording.estimatedDocumentCount()
 
-    const earliestTime = new Date(initialRecordings[3].date).getTime()
+    const earliestTime = new Date(initialRecordings[3].recording.mediaDate).getTime()
     const updatedRecording = await Recording.findOne({ 'earliestTime': earliestTime })
     let updatedRecordingEntry = JSON.parse(JSON.stringify(updatedRecording.recordings[updatedRecording.count - 1]))
     delete updatedRecordingEntry._id

@@ -21,7 +21,7 @@ const createUpdatePromise = (recording, imageUrl, thumbnailUrl) => {
     recording.recording.mediaThumbnailURL = thumbnailUrl
   }
 
-  const recordingDate = new Date(recording.date)
+  const recordingDate = new Date(recording.recording.mediaDate)
   const justDate = new Date(Date.UTC(recordingDate.getUTCFullYear(), recordingDate.getUTCMonth(), recordingDate.getUTCDate()))
   return Recording.updateOne(
     { 'date': justDate, 'count': { $lt: 20 } },

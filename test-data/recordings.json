@@ -1,6 +1,5 @@
 [
   {
-    "date": "2021-02-07T08:42:44.000Z",
     "count": 20,
     "recording": {
       "emailBody": {
@@ -12,6 +11,7 @@
         "signal": "Good",
         "sd-card-free-space": "14.42 GB of 14.91 GB(96.71%)"
       },
+      "mediaDate": "2021-02-07T08:42:44.000Z",
       "emailDeliveryDate": "2021-02-05T18:42:52.000Z",
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
@@ -22,7 +22,6 @@
     }
   },
   {
-    "date": "2021-02-06T07:13:44.000Z",
     "count": 20,
     "recording": {
       "emailBody": {
@@ -34,6 +33,7 @@
         "signal": "Good",
         "sd-card-free-space": "14.42 GB of 14.91 GB(96.71%)"
       },
+      "mediaDate": "2021-02-06T07:13:44.000Z",
       "emailDeliveryDate": "2021-02-05T18:42:52.000Z",
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
@@ -44,7 +44,6 @@
     }
   },
   {
-    "date": "2021-02-05T08:56:30.000Z",
     "count": 20,
     "recording": {
       "emailBody": {
@@ -56,6 +55,7 @@
         "signal": "Good",
         "sd-card-free-space": "14.42 GB of 14.91 GB(96.71%)"
       },
+      "mediaDate": "2021-02-05T08:56:30.000Z",
       "emailDeliveryDate": "2021-02-05T18:42:52.000Z",
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
@@ -66,7 +66,6 @@
     }
   },
   {
-    "date": "2021-02-05T10:34:30.000Z",
     "count": 5,
     "recording": {
       "emailBody": {
@@ -78,6 +77,7 @@
         "signal": "Good",
         "sd-card-free-space": "14.42 GB of 14.91 GB(96.71%)"
       },
+      "mediaDate": "2021-02-05T10:34:30.000Z",
       "emailDeliveryDate": "2021-02-05T18:42:52.000Z",
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
