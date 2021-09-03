@@ -164,6 +164,19 @@ describe('Add a tag to a recording', () => {
       expect(error.body).toHaveProperty('error')
     })
 
+    test('When logged in and not providing a recording id, returns status 404', async () => {
+      const tagToBeAdded = {
+        tag: 'Short text',
+        color: 'blue.500'
+      }
+
+      await agentAdmin
+        .patch('/api/recordings/tags')
+        .send(tagToBeAdded)
+        .expect(404)
+
+    })
+
     test('When logged in and providing an invalid recording id, returns status 400 and error', async () => {
       const tagToBeAdded = {
         tag: 'Short text',
