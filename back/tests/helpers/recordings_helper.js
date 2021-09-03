@@ -10,7 +10,7 @@ const reloadRecordings = async (imageUrl = '', thumbnailUrl = '') => {
   //Store all returned promises to an array, and call them with Promise.all, which will
   //await each of them and finish once they are all finished.
   const promisesArray = initialRecordings.map((recording) => createUpdatePromise(recording, imageUrl, thumbnailUrl))
-  await Promise.all(promisesArray)
+  return await Promise.all(promisesArray)
 }
 
 const createUpdatePromise = (recording, imageUrl, thumbnailUrl) => {
@@ -23,7 +23,7 @@ const createUpdatePromise = (recording, imageUrl, thumbnailUrl) => {
 
   const recordingDate = new Date(recording.recording.mediaDate)
   const justDate = new Date(Date.UTC(recordingDate.getUTCFullYear(), recordingDate.getUTCMonth(), recordingDate.getUTCDate()))
-  return Recording.updateOne(
+  return Recording.findOneAndUpdate(
     { 'date': justDate, 'count': { $lt: 20 } },
     {
       '$push': {
@@ -31,7 +31,7 @@ const createUpdatePromise = (recording, imageUrl, thumbnailUrl) => {
       '$inc': { 'count': recording.count },
       '$setOnInsert': { 'earliestTime': recordingDate.getTime(), 'date': justDate.getTime() }
     },
-    { upsert: true }
+    { upsert: true, new: true }
   )
 }
 

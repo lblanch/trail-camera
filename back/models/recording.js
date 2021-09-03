@@ -51,7 +51,17 @@ const recordingSchema = new mongoose.Schema({
     emailBody: {
       type: Map,
       of: String
-    }
+    },
+    tags: [{
+      tag: {
+        type: String,
+        required: true
+      },
+      color: {
+        type: String,
+        default: 'red.400'
+      }
+    }]
   }]
 }, { timestamps: true })
 

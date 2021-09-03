@@ -66,7 +66,7 @@ app.use(errorHandler)
 
 const connect = async () => {
   //Connect to MongoDB database
-  await mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
+  await mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false })
   logger.info('connected to MongoDB in mode ', process.env.NODE_ENV)
 
   //Start listening

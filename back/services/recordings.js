@@ -18,4 +18,20 @@ const getRecordingsByPage = async (pageNumber) => {
   return await Recording.findOne({}, null, { sort: { date: -1, earliestTime: -1 }, skip: pageNumber })
 }
 
-module.exports = { getRecordingsByPage, upsertRecording }
+const addTagToRecording = async (recordingId, tag) => {
+  const updatedRecording = await Recording.findOneAndUpdate(
+    { 'recordings._id': recordingId },
+    { '$push': { 'recordings.$.tags':  tag } },
+    { new: true, runValidators: true }
+  )
+
+  if (updatedRecording === null) {
+    const newError = new Error('Invalid recording id')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  return updatedRecording
+}
+
+module.exports = { getRecordingsByPage, upsertRecording, addTagToRecording }

@@ -1,5 +1,7 @@
 const recordingsRouter = require('express').Router()
-const { getRecordingsByPage } = require('../services/recordings')
+const mongoose = require('mongoose')
+
+const { getRecordingsByPage, addTagToRecording } = require('../services/recordings')
 const { logInFromSession } = require('../utils/middleware')
 
 recordingsRouter.get('/:page', logInFromSession, async (request, response) => {
@@ -34,6 +36,30 @@ recordingsRouter.get('/', logInFromSession, async (request, response) => {
   } else {
     response.status(200).send({ count: 0 })
   }
+})
+
+recordingsRouter.patch('/tags/:recordingId', logInFromSession, async (request, response) => {
+
+  if (!request.body.tag) {
+    const newError = new Error('Tag missing')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  if (!mongoose.isValidObjectId(request.params.recordingId)) {
+    const newError = new Error('Invalid recording id')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const tagToBeAdded = {
+    tag: request.body.tag,
+    color: request.body.color
+  }
+
+  const updatedRecording = await addTagToRecording(request.params.recordingId, tagToBeAdded)
+
+  response.status(200).send({ tags: updatedRecording.recordings.id(request.params.recordingId).tags })
 })
 
 module.exports = recordingsRouter

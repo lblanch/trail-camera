@@ -9,7 +9,7 @@ const { createS3Client, shutdownS3Client } = require('./utils/awsS3')
 
 //Constants
 const MONGODB_URI = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI : process.env.TEST_MONGODB_URI
-const MONGODB_OPTIONS = { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
+const MONGODB_OPTIONS = { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false }
 const LOG_TAG = 'email-parser:'
 const MAX_RETRY_ATTEMPTS = 100
 const INBOX_MAILBOX = 'INBOX'

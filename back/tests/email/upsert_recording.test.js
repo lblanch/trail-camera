@@ -9,7 +9,10 @@ const { upsertEmailWithAttachments } = require('../helpers/email_helper')
 let recordingAmountCount
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
+  await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false })
+
+  //Add empty tags array, which would be created by default in the db
+  upsertEmailWithAttachments.tags = []
 })
 
 beforeEach(async () => {
