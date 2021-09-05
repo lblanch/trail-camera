@@ -34,4 +34,19 @@ const addTagToRecording = async (recordingId, tag) => {
   return updatedRecording
 }
 
-module.exports = { getRecordingsByPage, upsertRecording, addTagToRecording }
+const removeTagFromRecording = async (tagId) => {
+  const result = await Recording.updateOne(
+    { 'recordings.tags._id': tagId },
+    { '$pull': { 'recordings.$.tags': { '_id': tagId } } }
+  )
+
+  if (result.nModified === 0) {
+    const newError = new Error('Invalid tag id')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  return result
+}
+
+module.exports = { getRecordingsByPage, upsertRecording, addTagToRecording, removeTagFromRecording }

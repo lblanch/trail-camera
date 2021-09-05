@@ -40,7 +40,11 @@
       "subject": "UM785 (Europe)|05.02.2021 20:42:44",
       "mediaType": "picture",
       "mediaThumbnailURL": "https://example.com/pics/IMG1.jpg",
-      "mediaURL": "https://example.com/pics/IMG1.jpg"
+      "mediaURL": "https://example.com/pics/IMG1.jpg",
+      "tags": [
+        { "tag": "deer", "color": "blue.500" },
+        { "tag": "young", "color": "purple.500" }
+      ]
     }
   },
   {

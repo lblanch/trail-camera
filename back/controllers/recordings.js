@@ -1,7 +1,7 @@
 const recordingsRouter = require('express').Router()
 const mongoose = require('mongoose')
 
-const { getRecordingsByPage, addTagToRecording } = require('../services/recordings')
+const { getRecordingsByPage, addTagToRecording, removeTagFromRecording } = require('../services/recordings')
 const { logInFromSession } = require('../utils/middleware')
 
 recordingsRouter.get('/:page', logInFromSession, async (request, response) => {
@@ -60,6 +60,20 @@ recordingsRouter.patch('/tags/:recordingId', logInFromSession, async (request, r
   const updatedRecording = await addTagToRecording(request.params.recordingId, tagToBeAdded)
 
   response.status(200).send({ tags: updatedRecording.recordings.id(request.params.recordingId).tags })
+})
+
+recordingsRouter.delete('/tags/:tagId', logInFromSession, async (request, response) => {
+  if (!mongoose.isValidObjectId(request.params.tagId)) {
+    const newError = new Error('Invalid tag id')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const result = await removeTagFromRecording(request.params.tagId)
+
+  console.log(result)
+
+  response.status(200).end()
 })
 
 module.exports = recordingsRouter
