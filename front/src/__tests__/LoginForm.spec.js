@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -7,7 +7,7 @@ import usersJSON from '../../../test-data/users.json'
 import LoginForm from '../components/LoginForm'
 
 describe('<LoginForm />', () => {
-  test('clicking the login button calls the login handler once, with the credentials', () => {
+  test('clicking the login button calls the login handler once, with the credentials', async() => {
     const testCredentials = {
       email: usersJSON.admin.email,
       password: usersJSON.admin.password
@@ -33,5 +33,8 @@ describe('<LoginForm />', () => {
     expect(screen.getByLabelText('Password')).toHaveValue('')
     expect(mockHandler).toHaveBeenCalled()
     expect(mockHandler).toHaveBeenCalledWith(testCredentials)
+
+    //Make sure a spinner shows when logging in, then disappears
+    await waitForElementToBeRemoved(() => screen.getByText('Logging in'))
   })
 })

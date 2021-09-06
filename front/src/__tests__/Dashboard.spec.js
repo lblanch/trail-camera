@@ -8,27 +8,27 @@ import Dashboard from '../components/Dashboard'
 
 describe('<Dashboard />', () => {
   test('shows skeleton while loading data and user is null', () => {
-    render(<Dashboard user={null} loading={true}/>)
+    render(<Dashboard user={null} loading={true} recordings={[]} />)
     expect(screen.queryByText('TrailCam')).not.toBeVisible()
     expect(screen.queryByText('Loading user')).not.toBeVisible()
   })
 
   test('shows skeleton while loading data even if user is not null', () => {
     const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
-    render(<Dashboard user={user} loading={true}/>)
+    render(<Dashboard user={user} loading={true} recordings={[]} />)
     expect(screen.queryByText('TrailCam')).not.toBeVisible()
     expect(screen.queryByText(user.name)).not.toBeVisible()
   })
 
   test('shows header without name when loading is false but user is null', () => {
-    render(<Dashboard user={null} loading={false}/>)
+    render(<Dashboard user={null} loading={false} recordings={[]} />)
     expect(screen.queryByText('TrailCam')).toBeVisible()
     expect(screen.queryByText('Loading user')).toBeVisible()
   })
 
   test('shows header with user\'s name when loading is false and user is not null', () => {
     const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
-    render(<Dashboard user={user} loading={false}/>)
+    render(<Dashboard user={user} loading={false} recordings={[]} />)
     expect(screen.queryByText('TrailCam')).toBeVisible()
     expect(screen.queryByText(user.name)).toBeVisible()
     expect(screen.getByRole('button', { name: user.name })).toBeVisible()
@@ -36,7 +36,7 @@ describe('<Dashboard />', () => {
 
   test('when user\'s avatar is clicked, menu opens', async () => {
     const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
-    render(<Dashboard user={user} loading={false}/>)
+    render(<Dashboard user={user} loading={false} recordings={[]} />)
 
     expect(screen.getByText('Profile')).not.toBeVisible()
     expect(screen.getByText('Settings')).not.toBeVisible()
@@ -57,7 +57,7 @@ describe('<Dashboard />', () => {
     const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
     const mockHandler = jest.fn()
 
-    render(<Dashboard user={user} loading={false} logout={mockHandler}/>)
+    render(<Dashboard user={user} loading={false} logout={mockHandler} recordings={[]} />)
 
     userEvent.click(screen.getByRole('button', { name: user.name }))
 
