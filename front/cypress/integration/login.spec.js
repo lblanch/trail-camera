@@ -2,12 +2,7 @@ import usersJSON from '../../../test-data/users.json'
 
 describe('Login', () => {
   before(() => {
-    const options = '{"recordings": false, "basicUser": false}'
-    cy.exec(`npm run --prefix ../back seed:dev -- '${options}'`)
-      .then((result) => {
-        console.log(result.stdout)
-      })
-      .its('code').should('eq', 0)
+    cy.seedDb('{"recordings": false, "basicUser": false}')
   })
 
   it('Logs user in successfully', () => {

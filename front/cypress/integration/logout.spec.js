@@ -1,24 +1,19 @@
 describe('Logout', () => {
   before(() => {
-    const options = '{"recordings": false, "basicUser": false}'
-    cy.exec(`npm run --prefix ../back seed:dev -- '${options}'`)
-      .then((result) => {
-        console.log(result.stdout)
-      })
-      .its('code').should('eq', 0)
+    cy.seedDb('{"recordings": false, "basicUser": false}')
   })
 
   it('Logs user out successfully', () => {
     cy.intercept({
       method: 'GET',
-      url: '/api/auth',
-    }).as('authCheck')
+      url: '/api/recordings',
+    }).as('recordingsFetch')
 
     cy.loginAdmin()
 
     cy.visit('/dashboard')
 
-    cy.wait('@authCheck')
+    cy.wait('@recordingsFetch')
 
     cy.get('button[name="user-avatar"]')
       .click()

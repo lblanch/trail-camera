@@ -5,22 +5,37 @@ import LoginForm from './components/LoginForm'
 import Dashboard from './components/Dashboard'
 import Notification from './components/Notification'
 import authServices from './services/auth'
+import recordingsServices from './services/recordings'
 
 const App = () => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [recordings, setRecordings] = useState([])
+  //const [page, setPage] = useState(1)
 
   useEffect(() => {
     const fetchAuthData = async () => {
       try {
-        const response = await authServices.auth()
-        setUser(response)
+        const responseUser = await authServices.auth()
+        setUser(responseUser)
+        if (responseUser !== null) {
+          const responseRecordings = await recordingsServices.getInitialRecordings()
+          if (responseRecordings.count !== 0) {
+            setRecordings(responseRecordings.recordings)
+          } else {
+            setRecordings([])
+          }
+        }
       } catch(error) {
-        if (error.response.data.error)
-          console.log(error.response.data.error)
-        else
-          console.log(error.response.data)
+        if(error.response) {
+          if (error.response.data.error)
+            console.log(error.response.data.error)
+          else
+            console.log(error.response.data)
+        } else {
+          console.log(error)
+        }
       }
       setLoading(false)
     }
@@ -67,7 +82,7 @@ const App = () => {
         <Route path="/dashboard">
           { user === null && !loading
             ? <Redirect to="/login" />
-            : <Dashboard user={user} loading={loading} logout={logoutUser}/>
+            : <Dashboard user={user} loading={loading} logout={logoutUser} recordings={recordings}/>
           }
         </Route>
         <Route>

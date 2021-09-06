@@ -39,3 +39,11 @@ Cypress.Commands.add('loginBasic', () => {
     password: usersJSON.basic.password,
   })
 })
+
+Cypress.Commands.add('seedDb', (options) => {
+  cy.exec(`npm run --prefix ../back seed:dev -- '${options}'`)
+    .then((result) => {
+      console.log(result.stdout)
+    })
+    .its('code').should('eq', 0)
+})

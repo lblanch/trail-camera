@@ -42,8 +42,8 @@
       "mediaThumbnailURL": "https://example.com/pics/IMG1.jpg",
       "mediaURL": "https://example.com/pics/IMG1.jpg",
       "tags": [
-        { "tag": "deer", "color": "blue.500" },
-        { "tag": "young", "color": "purple.500" }
+        { "tag": "deer", "color": "blue" },
+        { "tag": "young", "color": "purple" }
       ]
     }
   },
