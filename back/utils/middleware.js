@@ -7,6 +7,10 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'ValidationError') {
     error.statusCode = 400
+  } else if (error.name === 'MongoServerError' && error.code === 11000)
+  {
+    //Turn MongoDb duplicate key error to a Validation error
+    error.statusCode = 400
   }
 
   //Send error response

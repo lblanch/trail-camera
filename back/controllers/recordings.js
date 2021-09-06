@@ -69,9 +69,7 @@ recordingsRouter.delete('/tags/:tagId', logInFromSession, async (request, respon
     throw newError
   }
 
-  const result = await removeTagFromRecording(request.params.tagId)
-
-  console.log(result)
+  await removeTagFromRecording(request.params.tagId)
 
   response.status(200).end()
 })

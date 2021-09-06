@@ -78,11 +78,14 @@ const rawMessageWithAttachment = {
 }
 
 const upsertEmailWithAttachments = {
-  mediaType: 'image/png',
+  mediaDate: new Date('2021-02-05T20:42:44.000Z'),
   emailDeliveryDate: new Date('2021-07-21T15:18:11.000Z'),
   sentTo: 'Receiver name <receiver@example.com>',
   sentFrom: 'sender name <sender@example.com>',
   subject: 'test with small image',
+  mediaType: 'image/png',
+  mediaThumbnailURL: 'https://someMediaUrl.com/myPic.jpg',
+  mediaURL: 'https://someMediaUrl.com/myPic.jpg',
   emailBody: {
     photo: '[10/Unlimited]',
     date: '05.02.21',
@@ -91,10 +94,7 @@ const upsertEmailWithAttachments = {
     battery: '80%',
     signal: 'Good',
     'sd-card-free-space': '14.42 GB of 14.91 GB(96.71%)'
-  },
-  mediaDate: new Date('2021-02-05T20:42:44.000Z'),
-  mediaThumbnailURL: 'https://someMediaUrl.com/myPic.jpg',
-  mediaURL: 'https://someMediaUrl.com/myPic.jpg'
+  }
 }
 
 module.exports = {

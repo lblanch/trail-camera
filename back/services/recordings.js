@@ -40,7 +40,7 @@ const removeTagFromRecording = async (tagId) => {
     { '$pull': { 'recordings.$.tags': { '_id': tagId } } }
   )
 
-  if (result.nModified === 0) {
+  if (result.modifiedCount === 0) {
     const newError = new Error('Invalid tag id')
     newError.statusCode = 400
     throw newError

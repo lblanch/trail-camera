@@ -9,7 +9,7 @@ const { upsertEmailWithAttachments } = require('../helpers/email_helper')
 let recordingAmountCount
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false })
+  await mongoose.connect(process.env.TEST_MONGODB_URI)
 
   //Add empty tags array, which would be created by default in the db
   upsertEmailWithAttachments.tags = []
@@ -38,7 +38,7 @@ describe('when document with same date already exists', () => {
     delete updatedRecordingEntry._id
 
     expect(recordingAmountAfter).toEqual(recordingAmountCount)
-    expect(result.nModified).toEqual(1)
+    expect(result.modifiedCount).toEqual(1)
     expect(updatedRecording.recordings).toHaveLength(initialRecordings[3].count + 1)
     expect(updatedRecording.count).toEqual(initialRecordings[3].count + 1)
     expect(JSON.stringify(updatedRecordingEntry)).toEqual(JSON.stringify(upsertEmailWithAttachments))
@@ -56,7 +56,7 @@ describe('when document with same date already exists', () => {
     delete createdRecordingEntry._id
 
     expect(recordingAmountAfter).toEqual(recordingAmountCount + 1)
-    expect(result.nModified).toEqual(0)
+    expect(result.modifiedCount).toEqual(0)
     expect(createdRecording.recordings).toHaveLength(1)
     expect(createdRecording.count).toEqual(1)
     expect(JSON.stringify(createdRecordingEntry)).toEqual(JSON.stringify(upsertEmailWithAttachments))
@@ -78,7 +78,7 @@ test('when document with same date does not exist creates new document with same
   delete createdRecordingEntry._id
 
   expect(recordingAmountAfter).toEqual(recordingAmountCount + 1)
-  expect(result.nModified).toEqual(0)
+  expect(result.modifiedCount).toEqual(0)
   expect(createdRecording.recordings).toHaveLength(1)
   expect(createdRecording.count).toEqual(1)
   expect(JSON.stringify(createdRecordingEntry)).toEqual(JSON.stringify(upsertEmailWithAttachments))

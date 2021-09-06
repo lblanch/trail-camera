@@ -34,8 +34,7 @@
     "imapflow": "^1.0.59",
     "leaked-handles": "^5.2.0",
     "mailparser": "^3.2.0",
-    "mongoose": "^5.12.1",
-    "mongoose-unique-validator": "^2.0.3"
+    "mongoose": "^6.0.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

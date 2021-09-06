@@ -25,7 +25,7 @@ const seedDb = async () => {
     return
   }
 
-  await mongoose.connect(process.env.TEST_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
+  await mongoose.connect(process.env.TEST_MONGODB_URI)
 
   const collections = await mongoose.connection.db.listCollections({}, { nameOnly: true }).toArray()
   for (const collection of collections) {
