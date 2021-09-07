@@ -32,6 +32,9 @@ describe('Dashboard menu', () => {
       cy.get('div[name="user-menu"]').should('contain', 'Profile')
       cy.get('div[name="user-menu"]').should('contain', 'Logout')
       cy.get('div[name="user-menu"]').should('contain', 'Settings')
+
+      cy.get('div[name="app-header"]').click()
+      cy.get('div[name="user-menu"]').should('not.be.visible')
     })
   })
 
@@ -65,10 +68,11 @@ describe('Dashboard menu', () => {
       cy.get('div[name="user-menu"]').should('contain', 'Profile')
       cy.get('div[name="user-menu"]').should('contain', 'Logout')
       cy.get('div[name="user-menu"]').should('not.contain', 'Settings')
+
+      cy.get('div[name="app-header"]').click()
+      cy.get('div[name="user-menu"]').should('not.be.visible')
     })
   })
-
-  //TODO: test closing user menu
 
   describe('Dashboard with recordings', () => {
     before(() => {
