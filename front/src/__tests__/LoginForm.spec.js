@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -33,8 +33,5 @@ describe('<LoginForm />', () => {
     expect(screen.getByLabelText('Password')).toHaveValue('')
     expect(mockHandler).toHaveBeenCalled()
     expect(mockHandler).toHaveBeenCalledWith(testCredentials)
-
-    //Make sure a spinner shows when logging in, then disappears
-    await waitForElementToBeRemoved(() => screen.getByText('Logging in'))
   })
 })

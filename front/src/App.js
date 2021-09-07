@@ -2,31 +2,45 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom'
 
 import LoginForm from './components/LoginForm'
+import Header from './components/Header'
 import Dashboard from './components/Dashboard'
 import Notification from './components/Notification'
 import authServices from './services/auth'
-import recordingsServices from './services/recordings'
+import { Skeleton } from '@chakra-ui/react'
+
+const AppSwitch = ({ user, loginUser }) => (
+  <Switch>
+    <Route path="/login">
+      { user === null
+        ? <LoginForm loginUser={loginUser} />
+        : <Redirect to="/dashboard" />
+      }
+    </Route>
+    <Route path="/dashboard">
+      { user === null
+        ? <Redirect to="/login" />
+        : <Dashboard />
+      }
+    </Route>
+    <Route>
+      { user === null
+        ? <Redirect to="/login" />
+        : <Redirect to="/dashboard" />
+      }
+    </Route>
+  </Switch>
+)
 
 const App = () => {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [userLoading, setUserLoading] = useState(true)
   const [message, setMessage] = useState('')
-  const [recordings, setRecordings] = useState([])
-  //const [page, setPage] = useState(1)
 
   useEffect(() => {
     const fetchAuthData = async () => {
       try {
         const responseUser = await authServices.auth()
         setUser(responseUser)
-        if (responseUser !== null) {
-          const responseRecordings = await recordingsServices.getInitialRecordings()
-          if (responseRecordings.count !== 0) {
-            setRecordings(responseRecordings.recordings)
-          } else {
-            setRecordings([])
-          }
-        }
       } catch(error) {
         if(error.response) {
           if (error.response.data.error)
@@ -36,14 +50,16 @@ const App = () => {
         } else {
           console.log(error)
         }
+      } finally {
+        setUserLoading(false)
       }
-      setLoading(false)
     }
 
     fetchAuthData()
   }, [])
 
   const loginUser = async (credentials) => {
+    setUserLoading(true)
     try {
       const loggedUser = await authServices.login(credentials)
       setUser(loggedUser)
@@ -53,6 +69,8 @@ const App = () => {
         setMessage(error.response.data.error)
       else
         setMessage(error.response.data)
+    } finally {
+      setUserLoading(false)
     }
   }
 
@@ -71,27 +89,12 @@ const App = () => {
 
   return (
     <Router>
+      <Header loading={userLoading} user={user} logout={logoutUser} />
       <Notification message={message} />
-      <Switch>
-        <Route path="/login">
-          { user === null
-            ? <LoginForm loginUser={loginUser} />
-            : <Redirect to="/dashboard" />
-          }
-        </Route>
-        <Route path="/dashboard">
-          { user === null && !loading
-            ? <Redirect to="/login" />
-            : <Dashboard user={user} loading={loading} logout={logoutUser} recordings={recordings}/>
-          }
-        </Route>
-        <Route>
-          { user === null && !loading
-            ? <Redirect to="/login" />
-            : <Redirect to="/dashboard" />
-          }
-        </Route>
-      </Switch>
+      { userLoading
+        ? <Skeleton height="50px" />
+        : <AppSwitch user={user} loginUser={loginUser} />
+      }
     </Router>
   )
 }

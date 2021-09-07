@@ -3,14 +3,12 @@ import { VStack, Input, InputGroup, InputRightElement, Button, FormLabel, FormCo
 
 const LoginForm = ({ loginUser }) => {
   const [show, setShow] = useState(false)
-  const [loading, setLoading] = useState(false)
 
   const handleShowPassword = () => {
     setShow(!show)
   }
 
   const submitLoginForm = async (event) => {
-    setLoading(true)
     event.preventDefault()
 
     //event.target.email.value would not work when testing
@@ -24,7 +22,6 @@ const LoginForm = ({ loginUser }) => {
     password.value = ''
 
     await loginUser(credentials)
-    setLoading(false)
   }
 
   return (
@@ -45,10 +42,7 @@ const LoginForm = ({ loginUser }) => {
             </InputRightElement>
           </InputGroup>
         </FormControl>
-        {loading ?
-          <Button isLoading  loadingText="Logging in" variant="solid" name="login-button">Login</Button>
-          : <Button variant="solid" name="login-button" type="submit">Login</Button>
-        }
+        <Button variant="solid" name="login-button" type="submit">Login</Button>
       </form>
     </VStack>
   )

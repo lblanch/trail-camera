@@ -1,10 +1,11 @@
-import { Skeleton, Box, Flex, Menu, MenuButton, Avatar, Heading,
-  MenuList, MenuItem, Button, useColorModeValue, Text, Spacer, MenuDivider,
-  SimpleGrid, Image, List, ListItem, ListIcon, Center, Stack, Tag, TagLabel,
-  TagLeftIcon, TagCloseButton, Wrap, WrapItem } from '@chakra-ui/react'
+import { Skeleton, Box, useColorModeValue, SimpleGrid, Heading,
+  Image, List, ListItem, ListIcon, Center, Stack, Tag,
+  TagLabel, TagLeftIcon, TagCloseButton, Wrap, WrapItem } from '@chakra-ui/react'
 import { FaThermometerHalf, FaClock, FaCalendarAlt,
   FaCircle, FaTag } from 'react-icons/fa'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+
+import recordingsServices from '../services/recordings'
 
 const Recording = ({ index, recording }) => {
   return(
@@ -75,45 +76,39 @@ const Recordings = ({ recordings }) => {
   )
 }
 
-const Dashboard = ({ user, loading, logout, recordings }) => {
-  const logoutHandler = async () => {
-    await logout()
-  }
+const Dashboard = () => {
+  const [recordings, setRecordings] = useState([])
+  const [loading, setLoading] = useState(false)
+  //const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    const fetchRecordings = async () => {
+      try {
+        const responseRecordings = await recordingsServices.getInitialRecordings()
+        if (responseRecordings.count !== 0) {
+          setRecordings(responseRecordings.recordings)
+        } else {
+          setRecordings([])
+        }
+      } catch(error) {
+        if(error.response) {
+          if (error.response.data.error)
+            console.log(error.response.data.error)
+          else
+            console.log(error.response.data)
+        } else {
+          console.log(error)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRecordings()
+  }, [])
 
   return (
     <Skeleton isLoaded={!loading}>
-      <Box name="app-header" bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
-        <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
-          <Heading>{'TrailCam'}</Heading>
-          <Spacer/>
-          <Flex alignItems={'center'} justifyContent={'space-between'}>
-            <Menu>
-              <MenuButton
-                name="user-avatar"
-                as={Button}
-                rounded={'full'}
-                variant={'link'}
-                cursor={'pointer'}
-                minW={0}>
-                <Avatar
-                  name={ user === null ? '' : user.name }
-                  size={'sm'}
-                  src={''}
-                />
-              </MenuButton>
-              <MenuList name="user-menu">
-                {user !== null && user.role === 'admin' ? <MenuItem>Settings</MenuItem> : <></> }
-                <MenuItem>Profile</MenuItem>
-                <MenuDivider/>
-                <MenuItem name="user-logout" onClick={logoutHandler}>Logout</MenuItem>
-              </MenuList>
-            </Menu>
-            <Box p={3}>
-              <Text>{ user === null ? 'Loading user' : user.name }</Text>
-            </Box>
-          </Flex>
-        </Flex>
-      </Box>
       {
         recordings.length !== 0
           ? <Recordings recordings={recordings}/>
