@@ -16,6 +16,7 @@ const upsertRecording = async (recording) => {
 
 const getRecordingsByPage = async (pageNumber) => {
   return await Recording.findOne({}, null, { sort: { date: -1, earliestTime: -1 }, skip: pageNumber })
+    .select({ count: 1, date:1, recordings: 1 })
 }
 
 const addTagToRecording = async (recordingId, tag) => {

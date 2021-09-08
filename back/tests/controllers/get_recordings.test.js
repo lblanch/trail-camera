@@ -66,9 +66,6 @@ describe('The collection is empty', () => {
     expect(recordings.body).not.toHaveProperty('date')
     expect(recordings.body).not.toHaveProperty('recordings')
     expect(recordings.body).not.toHaveProperty('_id')
-    expect(recordings.body).not.toHaveProperty('earliestTime')
-    expect(recordings.body).not.toHaveProperty('createdAt')
-    expect(recordings.body).not.toHaveProperty('updatedAt')
   })
 
   test('Get recordings with pagination when logged in returns status 200 and property count = 0', async () => {
@@ -81,9 +78,6 @@ describe('The collection is empty', () => {
     expect(recordings.body).not.toHaveProperty('date')
     expect(recordings.body).not.toHaveProperty('recordings')
     expect(recordings.body).not.toHaveProperty('_id')
-    expect(recordings.body).not.toHaveProperty('earliestTime')
-    expect(recordings.body).not.toHaveProperty('createdAt')
-    expect(recordings.body).not.toHaveProperty('updatedAt')
   })
 })
 
@@ -124,7 +118,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.count).toEqual(20)
       expect(recordings.body.date).toEqual(expectedDate.toISOString())
       expect(recordings.body).toHaveProperty('_id')
-      expect(recordings.body).toHaveProperty('earliestTime')
       expect(recordings.body.recordings[0]).toHaveProperty('emailDeliveryDate')
       expect(recordings.body.recordings[0]).toHaveProperty('sentTo')
       expect(recordings.body.recordings[0]).toHaveProperty('sentFrom')
@@ -133,8 +126,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
-      expect(recordings.body).toHaveProperty('createdAt')
-      expect(recordings.body).toHaveProperty('updatedAt')
     })
 
     test('Get recordings as admin returns status 200 and first page of recordings from latest date', async () => {
@@ -152,7 +143,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.count).toEqual(20)
       expect(recordings.body.date).toEqual(expectedDate.toISOString())
       expect(recordings.body).toHaveProperty('_id')
-      expect(recordings.body).toHaveProperty('earliestTime')
       expect(recordings.body.recordings[0]).toHaveProperty('emailDeliveryDate')
       expect(recordings.body.recordings[0]).toHaveProperty('sentTo')
       expect(recordings.body.recordings[0]).toHaveProperty('sentFrom')
@@ -161,8 +151,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
-      expect(recordings.body).toHaveProperty('createdAt')
-      expect(recordings.body).toHaveProperty('updatedAt')
     })
   })
 
@@ -182,7 +170,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.count).toEqual(20)
       expect(recordings.body.date).toEqual(expectedDate.toISOString())
       expect(recordings.body).toHaveProperty('_id')
-      expect(recordings.body).toHaveProperty('earliestTime')
       expect(recordings.body.recordings[0]).toHaveProperty('emailDeliveryDate')
       expect(recordings.body.recordings[0]).toHaveProperty('sentTo')
       expect(recordings.body.recordings[0]).toHaveProperty('sentFrom')
@@ -191,8 +178,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
-      expect(recordings.body).toHaveProperty('createdAt')
-      expect(recordings.body).toHaveProperty('updatedAt')
     })
 
     test('when passed page > 1 that still has content returns status 200 and list of recordings from corresponding page', async () => {
@@ -210,7 +195,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.count).toEqual(20)
       expect(recordings.body.date).toEqual(expectedDate.toISOString())
       expect(recordings.body).toHaveProperty('_id')
-      expect(recordings.body).toHaveProperty('earliestTime')
       expect(recordings.body.recordings[0]).toHaveProperty('emailDeliveryDate')
       expect(recordings.body.recordings[0]).toHaveProperty('sentTo')
       expect(recordings.body.recordings[0]).toHaveProperty('sentFrom')
@@ -219,8 +203,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
-      expect(recordings.body).toHaveProperty('createdAt')
-      expect(recordings.body).toHaveProperty('updatedAt')
     })
 
     test('when passed page > 1 that has no more content returns status 200 and property count = 0', async () => {
@@ -233,9 +215,6 @@ describe('The collection is not empty', () => {
       expect(recordings.body).not.toHaveProperty('date')
       expect(recordings.body).not.toHaveProperty('recordings')
       expect(recordings.body).not.toHaveProperty('_id')
-      expect(recordings.body).not.toHaveProperty('earliestTime')
-      expect(recordings.body).not.toHaveProperty('createdAt')
-      expect(recordings.body).not.toHaveProperty('updatedAt')
     })
   })
 
