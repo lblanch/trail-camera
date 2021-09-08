@@ -7,13 +7,15 @@ const clearRecordings = async () => {
 }
 
 const reloadRecordings = async (imageUrl = '', thumbnailUrl = '') => {
-  //Store all returned promises to an array, and call them with Promise.all, which will
-  //await each of them and finish once they are all finished.
-  const promisesArray = initialRecordings.map((recording) => createUpdatePromise(recording, imageUrl, thumbnailUrl))
-  return await Promise.all(promisesArray)
+  let results = []
+  for (const recording of initialRecordings) {
+    const promiseResult = await upsertRecording(recording, imageUrl, thumbnailUrl)
+    results.push(promiseResult)
+  }
+  return results
 }
 
-const createUpdatePromise = (recording, imageUrl, thumbnailUrl) => {
+const upsertRecording = async (recording, imageUrl, thumbnailUrl) => {
   if (imageUrl !== '') {
     recording.recording.mediaURL = imageUrl
   }
@@ -23,7 +25,7 @@ const createUpdatePromise = (recording, imageUrl, thumbnailUrl) => {
 
   const recordingDate = new Date(recording.recording.mediaDate)
   const justDate = new Date(Date.UTC(recordingDate.getUTCFullYear(), recordingDate.getUTCMonth(), recordingDate.getUTCDate()))
-  return Recording.findOneAndUpdate(
+  return await Recording.findOneAndUpdate(
     { 'date': justDate, 'count': { $lt: 20 } },
     {
       '$push': {
