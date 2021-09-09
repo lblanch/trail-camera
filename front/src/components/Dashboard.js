@@ -3,22 +3,22 @@ import { Skeleton, Box, useColorModeValue, SimpleGrid, Heading,
   TagLabel, TagLeftIcon, TagCloseButton, Wrap, WrapItem } from '@chakra-ui/react'
 import { FaThermometerHalf, FaClock, FaCalendarAlt,
   FaCircle, FaTag } from 'react-icons/fa'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 
 import recordingsServices from '../services/recordings'
 
-const Recording = ({ index, recording }) => {
+const Recording = ({ dayIndex, index, recording }) => {
   return(
-    <Center name={`recording-${index}`}>
+    <Center name={`recording-${dayIndex}-${index}`}>
       <Box maxW={'445px'} w={'full'} bg={useColorModeValue('white', 'gray.900')} boxShadow={'2xl'} rounded={'md'} p={4} overflow={'hidden'}>
         <Box bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'}>
-          <Image name={`thumbnail-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} />
+          <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} />
         </Box>
         <Stack>
           <Heading color={useColorModeValue('gray.700', 'white')} fontSize={'2xl'} fontFamily={'body'}>
             {new Date(recording.mediaDate).toLocaleTimeString()}
           </Heading>
-          <List name={`info-${index}`} spacing={3}>
+          <List name={`info-${dayIndex}-${index}`} spacing={3}>
             {
               Object.entries(recording.emailBody).map(([k, v]) => {
                 let icon = FaCircle
@@ -59,15 +59,15 @@ const Recording = ({ index, recording }) => {
   )
 }
 
-const Recordings = ({ recordings }) => {
+const DayRecordings = ({ dayIndex, dayRecordings }) => {
   return (
-    <Box name="recordings" p={4}>
-      <Heading>{ new Date(recordings[0].mediaDate).toLocaleDateString()}</Heading>
+    <Box name={`recordings-${dayIndex}`} p={4}>
+      <Heading>{ new Date(dayRecordings.date).toLocaleDateString()}</Heading>
       <SimpleGrid minChildWidth="300px" spacing="40px" py={4}>
         {
-          recordings.map((recording, index) => {
+          dayRecordings.recordings.map((recording, index) => {
             return (
-              <Recording index={index} recording={recording} key={index} />
+              <Recording dayIndex={dayIndex} index={index} recording={recording} key={recording._id} />
             )
           })
         }
@@ -79,16 +79,58 @@ const Recordings = ({ recordings }) => {
 const Dashboard = () => {
   const [recordings, setRecordings] = useState([])
   const [loading, setLoading] = useState(false)
-  //const [page, setPage] = useState(1)
+  const [page, setPage] = useState(1)
+  const [isLastPage, setIsLastPage] = useState(true)
+
+  const observer = useRef()
+  const lastRecordingRef = useCallback((lastRecording) => {
+    if (loading) {
+      return
+    }
+
+    if (observer.current) {
+      observer.current.disconnect()
+    }
+
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isLastPage) {
+        setPage(prevPageNumber => prevPageNumber + 1)
+      }
+    })
+
+    if (lastRecording) {
+      observer.current.observe(lastRecording)
+    }
+  }, [loading, isLastPage])
 
   useEffect(() => {
     const fetchRecordings = async () => {
       try {
-        const responseRecordings = await recordingsServices.getInitialRecordings()
+        const responseRecordings = await recordingsServices.getRecordingsByPage(page)
         if (responseRecordings.count !== 0) {
-          setRecordings(responseRecordings.recordings)
+          setRecordings((prevRecordings) => {
+            const prevRecordingsLength = prevRecordings.length
+            if(prevRecordingsLength === 0) {
+              return [responseRecordings]
+            }
+
+            //If received recordings belong to an existing date: merge, otherwise, add at the end of array
+            if (prevRecordings[prevRecordingsLength - 1].date === responseRecordings.date) {
+              const newRecording = {
+                _id: prevRecordings[prevRecordingsLength - 1]._id,
+                count: prevRecordings[prevRecordingsLength - 1].count + responseRecordings.count,
+                date: responseRecordings.date,
+                recordings: prevRecordings[prevRecordingsLength - 1].recordings.concat(responseRecordings.recordings)
+              }
+
+              return [...prevRecordings.slice(0, -1), newRecording]
+            } else {
+              return [...prevRecordings, responseRecordings]
+            }
+          })
+          setIsLastPage(false)
         } else {
-          setRecordings([])
+          setIsLastPage(true)
         }
       } catch(error) {
         if(error.response) {
@@ -103,18 +145,23 @@ const Dashboard = () => {
         setLoading(false)
       }
     }
-
+    setLoading(true)
     fetchRecordings()
-  }, [])
+  }, [page])
 
   return (
-    <Skeleton isLoaded={!loading}>
+    <>
       {
-        recordings.length !== 0
-          ? <Recordings recordings={recordings}/>
-          : <></>
+        recordings.map((dayRecording, index) => {
+          return (
+            <DayRecordings key={dayRecording._id}  dayIndex={index} dayRecordings={dayRecording} />
+          )
+        })
       }
-    </Skeleton>
+      <Skeleton isLoaded={!loading} height="20px">
+        <div ref={lastRecordingRef}>{page === 1 && isLastPage === true && 'No results'}</div>
+      </Skeleton>
+    </>
   )
 }
 

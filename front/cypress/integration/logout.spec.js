@@ -6,14 +6,14 @@ describe('Logout', () => {
   it('Logs user out successfully', () => {
     cy.intercept({
       method: 'GET',
-      url: '/api/recordings',
-    }).as('recordingsFetch')
+      url: '/api/auth',
+    }).as('userAuth')
 
     cy.loginAdmin()
 
     cy.visit('/dashboard')
 
-    cy.wait('@recordingsFetch')
+    cy.wait('@userAuth')
 
     cy.get('button[name="user-avatar"]')
       .click()
