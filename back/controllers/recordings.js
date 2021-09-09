@@ -21,6 +21,7 @@ recordingsRouter.get('/:page', logInFromSession, async (request, response) => {
   const recordings = await getRecordingsByPage(numericPage-1)
 
   if(recordings) {
+    recordings.recordings.reverse()
     response.status(200).send(recordings)
   } else {
     response.status(200).send({ count: 0 })
@@ -32,6 +33,7 @@ recordingsRouter.get('/', logInFromSession, async (request, response) => {
   const recordings = await getRecordingsByPage(0)
 
   if(recordings) {
+    recordings.recordings.reverse()
     response.status(200).send(recordings)
   } else {
     response.status(200).send({ count: 0 })

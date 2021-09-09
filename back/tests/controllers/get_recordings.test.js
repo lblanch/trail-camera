@@ -126,6 +126,12 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
+
+      //Recordings should be ordered from newest to oldest
+      const firstRecordingDate = new Date(recordings.body.recordings[0].mediaDate)
+      const lastRecordingDate = new Date(recordings.body.recordings[recordings.body.count - 1].mediaDate)
+
+      expect(firstRecordingDate > lastRecordingDate).toEqual(true)
     })
 
     test('Get recordings as admin returns status 200 and first page of recordings from latest date', async () => {
@@ -151,6 +157,12 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
+
+      //Recordings should be ordered from newest to oldest
+      const firstRecordingDate = new Date(recordings.body.recordings[0].mediaDate)
+      const lastRecordingDate = new Date(recordings.body.recordings[recordings.body.count - 1].mediaDate)
+
+      expect(firstRecordingDate > lastRecordingDate).toEqual(true)
     })
   })
 
@@ -178,6 +190,12 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
+
+      //Recordings should be ordered from newest to oldest
+      const firstRecordingDate = new Date(recordings.body.recordings[0].mediaDate)
+      const lastRecordingDate = new Date(recordings.body.recordings[recordings.body.count - 1].mediaDate)
+
+      expect(firstRecordingDate > lastRecordingDate).toEqual(true)
     })
 
     test('when passed page > 1 that still has content returns status 200 and list of recordings from corresponding page', async () => {
@@ -203,6 +221,12 @@ describe('The collection is not empty', () => {
       expect(recordings.body.recordings[0]).toHaveProperty('mediaThumbnailURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaURL')
       expect(recordings.body.recordings[0]).toHaveProperty('mediaDate')
+
+      //Recordings should be ordered from newest to oldest
+      const firstRecordingDate = new Date(recordings.body.recordings[0].mediaDate)
+      const lastRecordingDate = new Date(recordings.body.recordings[recordings.body.count - 1].mediaDate)
+
+      expect(firstRecordingDate > lastRecordingDate).toEqual(true)
     })
 
     test('when passed page > 1 that has no more content returns status 200 and property count = 0', async () => {

@@ -8,28 +8,35 @@ const clearRecordings = async () => {
 
 const reloadRecordings = async (imageUrl = '', thumbnailUrl = '') => {
   let results = []
-  for (const recording of initialRecordings) {
-    const promiseResult = await upsertRecording(recording, imageUrl, thumbnailUrl)
+  for (const dayRecording of initialRecordings) {
+    if (imageUrl !== '') {
+      dayRecording.recording.mediaURL = imageUrl
+    }
+    if (thumbnailUrl !== '') {
+      dayRecording.recording.mediaThumbnailURL = thumbnailUrl
+    }
+    dayRecording.recordings = Array.from({ length: dayRecording.count }, (value, index) => {
+      let newMediaDate = new Date(dayRecording.recording.mediaDate)
+      newMediaDate.setUTCMinutes(newMediaDate.getUTCMinutes() + (index * 10))
+      return {
+        ...dayRecording.recording,
+        mediaDate: newMediaDate.toISOString()
+      }
+    })
+    const promiseResult = await upsertRecording(dayRecording)
     results.push(promiseResult)
   }
   return results
 }
 
-const upsertRecording = async (recording, imageUrl, thumbnailUrl) => {
-  if (imageUrl !== '') {
-    recording.recording.mediaURL = imageUrl
-  }
-  if (thumbnailUrl !== '') {
-    recording.recording.mediaThumbnailURL = thumbnailUrl
-  }
-
+const upsertRecording = async (recording) => {
   const recordingDate = new Date(recording.recording.mediaDate)
   const justDate = new Date(Date.UTC(recordingDate.getUTCFullYear(), recordingDate.getUTCMonth(), recordingDate.getUTCDate()))
   return await Recording.findOneAndUpdate(
     { 'date': justDate, 'count': { $lt: 20 } },
     {
       '$push': {
-        'recordings': { '$each': Array(recording.count).fill(recording.recording) } },
+        'recordings': { '$each': recording.recordings } },
       '$inc': { 'count': recording.count },
       '$setOnInsert': { 'earliestTime': recordingDate.getTime(), 'date': justDate.getTime() }
     },
