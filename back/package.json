@@ -6,6 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=production node index.js",
     "start:test": "NODE_ENV=test node index.js",
+    "build:ui": "rm -rf build && cd ../front && npm run build --prod && cp -r build ../back",
     "email-parser": "NODE_ENV=production node index-email.js",
     "email-parser:dev": "NODE_ENV=development node index-email.js",
     "dev": "NODE_ENV=development nodemon index.js",

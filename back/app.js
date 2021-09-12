@@ -39,6 +39,7 @@ store.on('connected', () => {
 })
 
 const app = express()
+app.use(express.static('build'))
 app.use(express.json())
 app.use(helmet())
 
