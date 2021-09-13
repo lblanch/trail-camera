@@ -41,7 +41,15 @@ store.on('connected', () => {
 const app = express()
 app.use(express.static('build'))
 app.use(express.json())
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      // To allow loading images not hosted in localhost, but in aws S3
+      'img-src': [`https://${process.env.AWS_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/`, '\'self\'', 'data:'],
+    },
+  },
+}))
 
 app.use(session({
   name: 'sid',
@@ -62,6 +70,10 @@ app.use(requestLogger)
 app.use('/api/auth', authRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/recordings', recordingsRouter)
+
+app.get('/*', function (req, res) {
+  res.sendFile(__dirname + '/build/index.html')
+})
 
 app.use(errorHandler)
 
