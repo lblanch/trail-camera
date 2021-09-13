@@ -58,9 +58,10 @@ const requestLogger = (request, response, next) => {
   if (paramsString.length > 2) {
     logMessage = logMessage.concat(' Params: ', paramsString)
   }
-  const bodyString = JSON.stringify(request.body)
-  if (bodyString.length > 2) {
-    logMessage = logMessage.concat(' Body: ', bodyString)
+
+  const bodyArray = Object.keys(request.body)
+  if (bodyArray.length > 0) {
+    logMessage = logMessage.concat(' Body: ', bodyArray.toString())
   }
 
   response.on('close', () => {
