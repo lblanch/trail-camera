@@ -53,6 +53,7 @@ app.use(helmet({
 
 app.use(session({
   name: 'sid',
+  proxy: true,
   secret: process.env.SECRET,
   resave: false,
   saveUninitialized: false,
