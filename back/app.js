@@ -4,6 +4,7 @@ const MongoDBStore = require('connect-mongodb-session')(session)
 const mongoose = require('mongoose')
 const { createHttpTerminator } = require('http-terminator')
 const helmet = require('helmet')
+const redirectSSL = require('redirect-ssl')
 require('express-async-errors')
 require('dotenv').config()
 
@@ -39,6 +40,10 @@ store.on('connected', () => {
 })
 
 const app = express()
+app.use(redirectSSL.create({
+  enabled: process.env.NODE_ENV === 'production',
+  statusCode: 308
+}))
 app.use(express.static('build'))
 app.use(express.json())
 app.use(helmet({
