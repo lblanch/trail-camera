@@ -57,7 +57,6 @@ describe('Imap server is available then email-client starts', () => {
     await new Promise(resolve => setTimeout(resolve, 20000))
 
     // The function was called exactly once
-    //expect(mockEmailParser.parseEmail.mock.calls.length).toBe(1)
     expect(mockEmailParser.parseEmail).toHaveBeenCalledTimes(1)
 
     // The first arg of the first call to the function was not undefined

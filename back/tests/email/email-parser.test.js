@@ -5,6 +5,8 @@ const mockedRecordings = require('../../services/recordings')
 const helper = require('../helpers/email_helper')
 const { parseEmail, parseEmailText } = require('../../email-parser')
 
+const CAMERA_TIMEZONE = 3
+
 describe('Parsing whole email contents', () => {
   beforeEach(() => {
     mockedAwsS3.sendFileToS3.mockReset()
@@ -12,7 +14,7 @@ describe('Parsing whole email contents', () => {
   })
 
   test('without attachment, doesn\'t create a new recording in DB and doesn\'t try to store it to S3', async () => {
-    await expect(parseEmail(helper.rawMessageWithoutAttachments))
+    await expect(parseEmail(helper.rawMessageWithoutAttachments, CAMERA_TIMEZONE))
       .rejects.toThrow('email doesn\'t have attachments')
 
     expect(mockedAwsS3.sendFileToS3).not.toHaveBeenCalled()
@@ -25,7 +27,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('full attachment, it parses the email, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.full)
+      await parseEmail(helper.rawMessageWithAttachment.full, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
@@ -33,7 +35,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('missing date header, it uses delivery-date as date, parses the email, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.deliveryDate)
+      await parseEmail(helper.rawMessageWithAttachment.deliveryDate, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
@@ -43,7 +45,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('missing date or delivery-date header, it uses current date, parses the email, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.noHeaderDate)
+      await parseEmail(helper.rawMessageWithAttachment.noHeaderDate, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
@@ -56,7 +58,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('missing date/delivery-date header and email body date, it uses current date for both emailDeliveryDate and mediaDate, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.noHeaderDateNoTextDateTime)
+      await parseEmail(helper.rawMessageWithAttachment.noHeaderDateNoTextDateTime, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
@@ -72,7 +74,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('with empty email body, doesn\'t include emailBody field, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.emptyText)
+      await parseEmail(helper.rawMessageWithAttachment.emptyText, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
@@ -83,7 +85,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('email body without date/time, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.noTextDateTime)
+      await parseEmail(helper.rawMessageWithAttachment.noTextDateTime, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
@@ -93,7 +95,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('email body with only date, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.noTextTime)
+      await parseEmail(helper.rawMessageWithAttachment.noTextTime, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()
@@ -103,7 +105,7 @@ describe('Parsing whole email contents', () => {
     })
 
     test('email body with only time, uses date/delivery-date for media date, stores attachment to S3 and creates a new recording in DB', async () => {
-      await parseEmail(helper.rawMessageWithAttachment.noTextDate)
+      await parseEmail(helper.rawMessageWithAttachment.noTextDate, CAMERA_TIMEZONE)
 
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalled()
       expect(mockedRecordings.upsertRecording).toHaveBeenCalled()

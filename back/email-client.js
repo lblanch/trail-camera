@@ -9,6 +9,8 @@ const { createS3Client, shutdownS3Client } = require('./utils/awsS3')
 
 //Constants
 const MONGODB_URI = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI : process.env.TEST_MONGODB_URI
+// Helsinki time is UTC+3
+const CAMERA_TIMEZONE = 3
 const LOG_TAG = 'email-parser:'
 const MAX_RETRY_ATTEMPTS = 100
 const INBOX_MAILBOX = 'INBOX'
@@ -90,7 +92,7 @@ const onExists = async data => {
     try {
       const downloadedEmail = await client.download(emailId, null)
 
-      await parseEmail(downloadedEmail.content)
+      await parseEmail(downloadedEmail.content, CAMERA_TIMEZONE)
     } catch (error) {
       logger.error(LOG_TAG, `error while parsing email ${emailId - emailPrevCount} of ${emailCount - emailPrevCount}`, error.message)
     }

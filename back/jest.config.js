@@ -12,6 +12,7 @@ module.exports = {
     '!utils/awsS3.js',
     '!.eslintrc.js',
     '!coverage/**',
-    '!tests/**'
+    '!tests/**',
+    '!build/**'
   ]
 }

@@ -78,7 +78,7 @@ const rawMessageWithAttachment = {
 }
 
 const upsertEmailWithAttachments = {
-  mediaDate: new Date('2021-02-05T20:42:44.000Z'),
+  mediaDate: new Date('2021-02-05T17:42:44.000Z'),
   emailDeliveryDate: new Date('2021-07-21T15:18:11.000Z'),
   sentTo: 'Receiver name <receiver@example.com>',
   sentFrom: 'sender name <sender@example.com>',
