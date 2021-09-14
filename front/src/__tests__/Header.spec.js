@@ -29,7 +29,7 @@ describe('<Header />', () => {
     render(<Header user={user} loading={false} />)
     expect(screen.queryByText('TrailCam')).toBeVisible()
     expect(screen.queryByText(user.name)).toBeVisible()
-    expect(screen.getByRole('button', { name: user.name })).toBeVisible()
+    expect(screen.queryByText(user.name.charAt())).toBeVisible()
   })
 
   test('when user\'s avatar is clicked, menu opens', async () => {
@@ -40,7 +40,7 @@ describe('<Header />', () => {
     expect(screen.getByText('Settings')).not.toBeVisible()
     expect(screen.getByText('Logout')).not.toBeVisible()
 
-    userEvent.click(screen.getByRole('button', { name: user.name }))
+    userEvent.click(screen.getByText(user.name))
 
     await waitFor(() => {
       expect(screen.getByText('Profile')).toBeVisible()
@@ -57,7 +57,7 @@ describe('<Header />', () => {
 
     render(<Header user={user} loading={false} logout={mockHandler} />)
 
-    userEvent.click(screen.getByRole('button', { name: user.name }))
+    userEvent.click(screen.getByText(user.name))
 
     await waitFor(() => {
       expect(screen.getByText('Logout')).toBeVisible()
