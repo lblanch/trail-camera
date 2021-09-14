@@ -9,14 +9,14 @@ import Header from '../components/Header'
 describe('<Header />', () => {
   test('shows skeleton while loading data and user is null', () => {
     render(<Header user={null} loading={true} />)
-    expect(screen.queryByText('TrailCam')).not.toBeVisible()
+    expect(screen.queryByText('TrailCam')).toBeNull()
   })
 
   test('shows skeleton while loading data even if user is not null', () => {
     const user = { name: usersJSON.admin.name, email: usersJSON.admin.email, role: usersJSON.admin.role }
     render(<Header user={user} loading={true} />)
-    expect(screen.queryByText('TrailCam')).not.toBeVisible()
-    expect(screen.queryByText(user.name)).not.toBeVisible()
+    expect(screen.queryByText('TrailCam')).toBeNull()
+    expect(screen.queryByText(user.name)).toBeNull()
   })
 
   test('shows header without name when loading is false but user is null', () => {
