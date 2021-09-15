@@ -34,10 +34,10 @@ describe('Dashboard', () => {
 
       cy.get('div[name="recording-0-0"]').within(() => {
         cy.get('img[name="thumbnail-0-0"]').should('have.attr', 'src', Cypress.env('mediaThumbnail'))
-        for (const property in recordingsJSON[0].recording.emailBody) {
-          cy.get('ul[name="info-0-0"]').should('contain', `${property}:`)
-          cy.get('ul[name="info-0-0"]').should('contain', recordingsJSON[0].recording.emailBody[property])
-        }
+        cy.get('ul[name="info-0-0"]').should('contain', 'Date')
+        cy.get('ul[name="info-0-0"]').should('contain', 'Time')
+        cy.get('ul[name="info-0-0"]').should('contain', new Date(recordingsJSON[0].recording.mediaDate).toLocaleDateString())
+        cy.get('ul[name="info-0-0"]').should('contain', latestTime.toLocaleTimeString())
       })
     })
   })

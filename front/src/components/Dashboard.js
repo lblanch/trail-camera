@@ -1,44 +1,32 @@
-import { Skeleton, Box, useColorModeValue, SimpleGrid, Heading,
-  Image, List, ListItem, ListIcon, Center, Stack, Tag,
-  TagLabel, TagLeftIcon, TagCloseButton, Wrap, WrapItem } from '@chakra-ui/react'
-import { FaThermometerHalf, FaClock, FaCalendarAlt,
-  FaCircle, FaTag } from 'react-icons/fa'
+import { Link as RouterLink } from 'react-router-dom'
+import { Center, Skeleton, Box, useColorModeValue, SimpleGrid, Heading,
+  Image, List, ListItem, ListIcon, LinkBox, Tag,
+  TagLabel, TagLeftIcon, TagCloseButton, Wrap, WrapItem,
+  LinkOverlay } from '@chakra-ui/react'
+import { FaClock, FaCalendarAlt, FaTag } from 'react-icons/fa'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 
 import recordingsServices from '../services/recordings'
 
-const Recording = ({ dayIndex, index, recording }) => {
+const RecordingCard = ({ dayIndex, index, recording }) => {
   return(
-    <Center name={`recording-${dayIndex}-${index}`}>
+    <LinkBox as={Center} name={`recording-${dayIndex}-${index}`}>
       <Box maxW={'445px'} w={'full'} bg={useColorModeValue('white', 'gray.900')} boxShadow={'2xl'} rounded={'md'} p={4} overflow={'hidden'}>
         <Box bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'}>
           <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} />
         </Box>
-        <Stack>
-          <Heading color={useColorModeValue('gray.700', 'white')} fontSize={'2xl'} fontFamily={'body'}>
-            {new Date(recording.mediaDate).toLocaleTimeString()}
-          </Heading>
-          <List name={`info-${dayIndex}-${index}`} spacing={3}>
-            {
-              Object.entries(recording.emailBody).map(([k, v]) => {
-                let icon = FaCircle
-                if (k === 'temperature') {
-                  icon = FaThermometerHalf
-                } else if (k === 'date') {
-                  icon = FaCalendarAlt
-                } else if (k === 'time') {
-                  icon = FaClock
-                }
-                return (
-                  <ListItem key={k}>
-                    <ListIcon as={icon} color="green.500" />
-                    <b>{k}:</b> {v}
-                  </ListItem>
-                )
-              })
-            }
-          </List>
-        </Stack>
+        <List name={`info-${dayIndex}-${index}`} spacing={3}>
+          <ListItem>
+            <ListIcon as={FaCalendarAlt} color="green.500" />
+            <LinkOverlay as={RouterLink} to={{ pathname: `/dashboard/${recording._id}`, state: { recording: recording } }}>
+              <b>Date</b> {new Date(recording.mediaDate).toLocaleDateString()}
+            </LinkOverlay>
+          </ListItem>
+          <ListItem>
+            <ListIcon as={FaClock} color="green.500" />
+            <b>Time:</b> {new Date(recording.mediaDate).toLocaleTimeString()}
+          </ListItem>
+        </List>
         <Wrap spacing="10px" justify="left" py={4}>
           {
             recording.tags.map((tag) => {
@@ -55,7 +43,7 @@ const Recording = ({ dayIndex, index, recording }) => {
           }
         </Wrap>
       </Box>
-    </Center>
+    </LinkBox>
   )
 }
 
@@ -67,7 +55,7 @@ const DayRecordings = ({ dayIndex, dayRecordings }) => {
         {
           dayRecordings.recordings.map((recording, index) => {
             return (
-              <Recording dayIndex={dayIndex} index={index} recording={recording} key={recording._id} />
+              <RecordingCard dayIndex={dayIndex} index={index} recording={recording} key={recording._id} />
             )
           })
         }

@@ -1,4 +1,5 @@
 import React from 'react'
+import { BrowserRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
@@ -59,7 +60,7 @@ describe('<Dashboard />', () => {
           return Promise.resolve({ count: 0 })
         })
 
-      render(<Dashboard />)
+      render(<BrowserRouter><Dashboard /></BrowserRouter>)
       await screen.findByText(dateToShow.toLocaleDateString())
       expect(screen.queryByText(dateToShow.toLocaleDateString())).toBeVisible()
       expect(mockRecordingsFetch).toHaveBeenCalledTimes(2)
@@ -117,7 +118,7 @@ describe('<Dashboard />', () => {
           })
         })
 
-      render(<Dashboard />)
+      render(<BrowserRouter><Dashboard /></BrowserRouter>)
       await screen.findByText(dateToShow.toLocaleDateString())
       expect(screen.queryByText(dateToShow.toLocaleDateString())).toBeVisible()
       expect(mockRecordingsFetch).toHaveBeenCalledTimes(1)

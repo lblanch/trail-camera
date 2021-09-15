@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom'
+import { Skeleton } from '@chakra-ui/react'
 
 import LoginForm from './components/LoginForm'
 import Header from './components/Header'
 import Dashboard from './components/Dashboard'
+import Recording from './components/Recording'
 import Notification from './components/Notification'
 import authServices from './services/auth'
-import { Skeleton } from '@chakra-ui/react'
 
 const AppSwitch = ({ user, loginUser }) => (
   <Switch>
@@ -14,6 +15,12 @@ const AppSwitch = ({ user, loginUser }) => (
       { user === null
         ? <LoginForm loginUser={loginUser} />
         : <Redirect to="/dashboard" />
+      }
+    </Route>
+    <Route path="/dashboard/:recordingId">
+      { user === null
+        ? <Redirect to="/login" />
+        : <Recording />
       }
     </Route>
     <Route path="/dashboard">
