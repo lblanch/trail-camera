@@ -40,8 +40,12 @@
         }
       ],
       "formation": {
-        "review": {
+        "web": {
           "quantity": 1,
+          "size": "free"
+        },
+        "worker": {
+          "quantity": 0,
           "size": "free"
         }
       }

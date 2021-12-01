@@ -1,3 +1,2 @@
 web: npm start
 worker: npm run email-parser
-review: npm run start:dev
