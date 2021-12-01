@@ -1,0 +1,56 @@
+{
+  "name": "Trailcam",
+  "description": "Process and visualize trail camera recordings",
+  "repository": "https://github.com/lblanch/trail-camera",
+  "env": {
+    "PROJECT_PATH": {
+      "description": "Path to the subdir that hosts the Nodejs app.",
+      "value": "back"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "hobby",
+      "command": "npm start"
+    },
+    "worker": {
+      "quantity": 1,
+      "size": "hobby",
+      "command": "npm run email-parser"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "https://github.com/timanovsky/subdir-heroku-buildpack"
+    },
+    {
+      "url": "https://elements.heroku.com/buildpacks/ffmpeg/ffmpeg"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "environments": {
+    "review": {
+      "buildpacks": [
+        {
+          "url": "https://github.com/timanovsky/subdir-heroku-buildpack"
+        },
+        {
+          "url": "heroku/nodejs"
+        }
+      ],
+      "formation": {
+        "web": {
+          "quantity": 1,
+          "size": "hobby",
+          "command": "npm run start:dev"
+        }
+      },
+      "scripts": {
+        "postdeploy": "npm run seed:params"
+      }
+    }
+  }
+}
