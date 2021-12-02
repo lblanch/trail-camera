@@ -23,10 +23,10 @@
       "url": "https://github.com/timanovsky/subdir-heroku-buildpack"
     },
     {
-      "url": "https://github.com/FFmpeg/FFmpeg.git"
+      "url": "heroku/nodejs"
     },
     {
-      "url": "heroku/nodejs"
+      "url": "https://github.com/FFmpeg/FFmpeg.git"
     }
   ],
   "environments": {
@@ -37,6 +37,9 @@
         },
         {
           "url": "heroku/nodejs"
+        },
+        {
+          "url": "https://github.com/FFmpeg/FFmpeg.git"
         }
       ],
       "formation": {
