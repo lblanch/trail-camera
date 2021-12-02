@@ -64,7 +64,7 @@ const DayRecordings = ({ dayIndex, dayRecordings }) => {
   )
 }
 
-const Dashboard = () => {
+const Dashboard = ({ errorHandler }) => {
   const [recordings, setRecordings] = useState([])
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -120,22 +120,16 @@ const Dashboard = () => {
         } else {
           setIsLastPage(true)
         }
-      } catch(error) {
-        if(error.response) {
-          if (error.response.data.error)
-            console.log(error.response.data.error)
-          else
-            console.log(error.response.data)
-        } else {
-          console.log(error)
-        }
-      } finally {
         setLoading(false)
+      } catch(error) {
+        setIsLastPage(true)
+        setLoading(false)
+        errorHandler(error)
       }
     }
     setLoading(true)
     fetchRecordings()
-  }, [page])
+  }, [page, errorHandler])
 
   return (
     <>

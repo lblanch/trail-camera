@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom'
 import { Skeleton } from '@chakra-ui/react'
 
@@ -9,7 +9,7 @@ import Recording from './components/Recording'
 import Notification from './components/Notification'
 import authServices from './services/auth'
 
-const AppSwitch = ({ user, loginUser }) => (
+const AppSwitch = ({ user, loginUser, errorHandler }) => (
   <Switch>
     <Route path="/login">
       { user === null
@@ -26,7 +26,7 @@ const AppSwitch = ({ user, loginUser }) => (
     <Route path="/dashboard">
       { user === null
         ? <Redirect to="/login" />
-        : <Dashboard />
+        : <Dashboard errorHandler={errorHandler} />
       }
     </Route>
     <Route>
@@ -43,27 +43,36 @@ const App = () => {
   const [userLoading, setUserLoading] = useState(true)
   const [message, setMessage] = useState('')
 
+  const errorHandler = useCallback((error) => {
+    if(error.response) {
+      if (error.response.status === 401) {
+        console.log(error.response.data.error)
+        setUser(null)
+      } else {
+        if (error.response.data.error)
+          console.log(error.response.data.error)
+        else
+          console.log(error.response.data)
+      }
+    } else {
+      console.log(error)
+    }
+  }, [])
+
   useEffect(() => {
     const fetchAuthData = async () => {
       try {
         const responseUser = await authServices.auth()
         setUser(responseUser)
       } catch(error) {
-        if(error.response) {
-          if (error.response.data.error)
-            console.log(error.response.data.error)
-          else
-            console.log(error.response.data)
-        } else {
-          console.log(error)
-        }
+        errorHandler(error)
       } finally {
         setUserLoading(false)
       }
     }
 
     fetchAuthData()
-  }, [])
+  }, [errorHandler])
 
   const loginUser = async (credentials) => {
     setUserLoading(true)
@@ -100,7 +109,7 @@ const App = () => {
       <Notification message={message} />
       { userLoading
         ? <Skeleton height="50px" />
-        : <AppSwitch user={user} loginUser={loginUser} />
+        : <AppSwitch user={user} loginUser={loginUser} errorHandler={errorHandler} />
       }
     </Router>
   )
