@@ -6,15 +6,25 @@ const clearRecordings = async () => {
   await Recording.deleteMany({})
 }
 
-const reloadRecordings = async (imageUrl = '', thumbnailUrl = '') => {
+const reloadRecordings = async (imageUrl = '', thumbnailUrl = '', videoUrl = '', thumbnailVideoUrl = '') => {
   let results = []
   for (const dayRecording of initialRecordings) {
-    if (imageUrl !== '') {
-      dayRecording.recording.mediaURL = imageUrl
+    if (dayRecording.recording.mediaType === 'image/jpeg') {
+      if (imageUrl !== '') {
+        dayRecording.recording.mediaURL = imageUrl
+      }
+      if (thumbnailUrl !== '') {
+        dayRecording.recording.mediaThumbnailURL = thumbnailUrl
+      }
+    } else {
+      if (videoUrl !== '') {
+        dayRecording.recording.mediaURL = videoUrl
+      }
+      if (thumbnailVideoUrl !== '') {
+        dayRecording.recording.mediaThumbnailURL = thumbnailVideoUrl
+      }
     }
-    if (thumbnailUrl !== '') {
-      dayRecording.recording.mediaThumbnailURL = thumbnailUrl
-    }
+
     dayRecording.recordings = Array.from({ length: dayRecording.count }, (value, index) => {
       let newMediaDate = new Date(dayRecording.recording.mediaDate)
       newMediaDate.setUTCMinutes(newMediaDate.getUTCMinutes() + (index * 10))
