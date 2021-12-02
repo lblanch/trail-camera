@@ -2,6 +2,8 @@
   "baseUrl": "http://localhost:3000",
   "env": {
     "mediaThumbnail": "https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer-small-unsplash.jpg",
-    "media": "https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer-large-unsplash.jpg"
+    "media": "https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer-large-unsplash.jpg",
+    "mediaVideoThumbnail": "https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer_video_new.mp4",
+    "mediaVideo": "https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer_video_new.mp4"
   }
 }

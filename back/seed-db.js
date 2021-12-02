@@ -11,7 +11,9 @@ let seedingOptions = {
   basicUser: true,
   invitedUser: false,
   mediaThumbnailUrl: '',
-  mediaUrl: ''
+  mediaUrl: '',
+  mediaThumbnailVideoUrl: '',
+  mediaVideoUrl: ''
 }
 
 //first 2 arguments are node + script path, custom arguments come afterwards
@@ -35,7 +37,7 @@ const seedDb = async () => {
 
   if (seedingOptions.recordings) {
     logger.info('reloading recordings', seedingOptions.mediaUrl, seedingOptions.mediaThumbnailUrl)
-    await recordingsHelper.reloadRecordings(seedingOptions.mediaUrl, seedingOptions.mediaThumbnailUrl)
+    await recordingsHelper.reloadRecordings(seedingOptions.mediaUrl, seedingOptions.mediaThumbnailUrl, seedingOptions.mediaVideoUrl, seedingOptions.mediaThumbnailVideoUrl)
   }
 
   if (seedingOptions.adminUser) {
