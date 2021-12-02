@@ -23,7 +23,7 @@
       "url": "https://github.com/timanovsky/subdir-heroku-buildpack"
     },
     {
-      "url": "https://elements.heroku.com/buildpacks/ffmpeg/ffmpeg"
+      "url": "https://github.com/FFmpeg/FFmpeg.git"
     },
     {
       "url": "heroku/nodejs"
