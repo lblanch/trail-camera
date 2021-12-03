@@ -7,11 +7,20 @@ import { Link, IconButton, Flex, Container, List, Stack, WrapItem,
   TagCloseButton } from '@chakra-ui/react'
 import { FaArrowLeft, FaTag, FaCircle, FaThermometerHalf, FaCalendarAlt, FaClock } from 'react-icons/fa'
 
+const RecordingVideo = ({ videoUrl, mediaType }) => {
+  return (
+    <video controls>
+      <source src={videoUrl} type={mediaType}/>
+    </video>
+  )
+}
+
 const Recording = (props) => {
   // TODO: if we didn't receive a recording, fetch it from the server with the recording id
   //const { recordingId } = useParams()
   const location = useLocation()
   const { recording } = location.state
+  const mediaTypeSplit = recording.mediaType.split('/')
 
   return (
     <Container maxW={'5xl'}>
@@ -24,7 +33,10 @@ const Recording = (props) => {
         spacing={10}
         py={8}>
         <Flex w={'full'}>
-          <Image src={recording.mediaURL} alt="Trail camera picture" />
+          { mediaTypeSplit[0] === 'image'
+            ? <Image src={recording.mediaURL} alt="Trail camera picture" />
+            : <RecordingVideo videoUrl={recording.mediaURL} mediaType={recording.mediaType} />
+          }
         </Flex>
         <Stack direction={{ base: 'column', md: 'row' }}>
           <Flex flex={1} textAlign={'left'}>
