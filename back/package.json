@@ -14,7 +14,7 @@
     "test:verbose": "NODE_ENV=development jest --verbose --runInBand --detectOpenHandles",
     "seed": "NODE_ENV=test node seed-db.js",
     "seed:dev": "NODE_ENV=development node seed-db.js",
-    "seed:params": "NODE_ENV=development node seed-db.js '{\"mediaThumbnailUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer-small-unsplash.jpg\", \"mediaUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer-small-unsplash.jpg\", \"mediaThumbnailVideoUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer_video_new.mp4\", \"mediaVideoUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer_video_new.mp4\"}'",
+    "seed:params": "NODE_ENV=development node seed-db.js '{\"mediaThumbnailUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer-small-unsplash.jpg\", \"mediaUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer-small-unsplash.jpg\", \"mediaThumbnailVideoUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer_gif.gif\", \"mediaVideoUrl\": \"https://trailcambucket.s3.eu-west-1.amazonaws.com/test/deer_video_new.mp4\"}'",
     "lint": "eslint ."
   },
   "keywords": [],
