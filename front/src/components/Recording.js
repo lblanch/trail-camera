@@ -21,6 +21,7 @@ const Recording = (props) => {
   const location = useLocation()
   const { recording } = location.state
   const mediaTypeSplit = recording.mediaType.split('/')
+  console.log('mediatype: ', recording.mediaType, 'mediatypesplit: ', mediaTypeSplit)
 
   return (
     <Container maxW={'5xl'}>
