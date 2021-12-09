@@ -19,6 +19,20 @@ const getRecordingsByPage = async (pageNumber) => {
     .select({ count: 1, date:1, recordings: 1 })
 }
 
+const getRecordingsByBeforeDate = async (beforeDate) => {
+  const filters = { earliestTime: { $lt: beforeDate } }
+
+  return await Recording.findOne(filters, null, { sort: { date: -1, earliestTime: -1 } })
+    .select({ count: 1, date:1, recordings: 1 })
+}
+
+const getRecordingsByAfterDate = async (afterDate) => {
+  const filters = { earliestTime: { $gt: afterDate } }
+
+  return await Recording.findOne(filters, null, { sort: { date: 1, earliestTime: 1 } })
+    .select({ count: 1, date:1, recordings: 1 })
+}
+
 const addTagToRecording = async (recordingId, tag) => {
   const updatedRecording = await Recording.findOneAndUpdate(
     { 'recordings._id': recordingId },
@@ -50,4 +64,4 @@ const removeTagFromRecording = async (tagId) => {
   return result
 }
 
-module.exports = { getRecordingsByPage, upsertRecording, addTagToRecording, removeTagFromRecording }
+module.exports = { getRecordingsByPage, getRecordingsByBeforeDate, getRecordingsByAfterDate, upsertRecording, addTagToRecording, removeTagFromRecording }
