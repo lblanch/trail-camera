@@ -4,7 +4,7 @@ import { Center, Skeleton, Box, useColorModeValue, SimpleGrid, Heading,
   TagLabel, TagLeftIcon, TagCloseButton, Wrap, WrapItem,
   LinkOverlay } from '@chakra-ui/react'
 import { FaClock, FaCalendarAlt, FaTag } from 'react-icons/fa'
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 
 import recordingsServices from '../services/recordings'
 
@@ -67,17 +67,102 @@ const DayRecordings = ({ dayIndex, dayDate, dayRecordings }) => {
 const Dashboard = ({ errorHandler }) => {
   const MAX_RECORDINGS = 3
 
-  const [recordings, setRecordings] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [fetchParams, setFetchParams] = useState({ endpoint: 'before', requestedDate: new Date().toISOString() })
-  const [isLastPage, setIsLastPage] = useState(true)
-  const [isFirstPage, setIsFirstPage] = useState(true)
+  const [infiniteScroll, setInfiniteScroll] = useState({ recordings: [], loading: false, isLastPage: false, isFirstPage: true })
 
   const observerLast = useRef()
   const observerFirst = useRef()
 
+  const fetchRecordings = useCallback(async (fetchParams) => {
+    try {
+      const responseRecordings = await recordingsServices.getRecordingsByDate(fetchParams.endpoint, fetchParams.requestedDate)
+      if (fetchParams.endpoint === 'before') {
+        if (responseRecordings.count !== 0) {
+          setInfiniteScroll((prevInfiniteScroll) => {
+            const newInfiniteScroll = {
+              recordings: [],
+              loading: false,
+              isLastPage: false,
+              isFirstPage: prevInfiniteScroll.isFirstPage
+            }
+            const newRecordings = [...prevInfiniteScroll.recordings]
+            if (newRecordings.length >= MAX_RECORDINGS) {
+              newInfiniteScroll.isFirstPage = false
+              newInfiniteScroll.recordings = newRecordings.slice(1).concat(responseRecordings)
+              return newInfiniteScroll
+            }
+            newInfiniteScroll.recordings = newRecordings.concat(responseRecordings)
+            return newInfiniteScroll
+          })
+        } else {
+          setInfiniteScroll((prevInfiniteScroll) => {
+            const newInfiniteScroll = {
+              recordings: prevInfiniteScroll.recordings,
+              loading: false,
+              isLastPage: true,
+              isFirstPage: prevInfiniteScroll.isFirstPage
+            }
+            return newInfiniteScroll
+          })
+        }
+      } else {
+        if (responseRecordings.count !== 0) {
+          setInfiniteScroll((prevInfiniteScroll) => {
+            const newInfiniteScroll = {
+              recordings: [],
+              loading: false,
+              isLastPage: prevInfiniteScroll.isLastPage,
+              isFirstPage: false
+            }
+            const newRecordings = [...prevInfiniteScroll.recordings]
+            if (newRecordings.length >= MAX_RECORDINGS) {
+              newInfiniteScroll.isLastPage = false
+              newInfiniteScroll.recordings = [responseRecordings, ...newRecordings.slice(0, -1)]
+              return newInfiniteScroll
+            }
+            newInfiniteScroll.recordings = [responseRecordings, ...newRecordings]
+            return newInfiniteScroll
+          })
+        } else {
+          setInfiniteScroll((prevInfiniteScroll) => {
+            const newInfiniteScroll = {
+              recordings: prevInfiniteScroll.recordings,
+              loading: false,
+              isLastPage: prevInfiniteScroll.isLastPage,
+              isFirstPage: true
+            }
+            return newInfiniteScroll
+          })
+        }
+      }
+    } catch(error) {
+      if (fetchParams.endpoint === 'before') {
+        setInfiniteScroll((prevInfiniteScroll) => {
+          const newInfiniteScroll = {
+            recordings: prevInfiniteScroll.recordings,
+            loading: false,
+            isLastPage: true,
+            isFirstPage: prevInfiniteScroll.isFirstPage
+          }
+          return newInfiniteScroll
+        })
+      } else {
+        setInfiniteScroll((prevInfiniteScroll) => {
+          const newInfiniteScroll = {
+            recordings: prevInfiniteScroll.recordings,
+            loading: false,
+            isLastPage: prevInfiniteScroll.isLastPage,
+            isFirstPage: true
+          }
+          return newInfiniteScroll
+        })
+
+      }
+      errorHandler(error)
+    }
+  }, [errorHandler])
+
   const lastRecordingRef = useCallback((lastRecording) => {
-    if (loading) {
+    if (infiniteScroll.loading) {
       return
     }
 
@@ -85,20 +170,23 @@ const Dashboard = ({ errorHandler }) => {
       observerLast.current.disconnect()
     }
 
-    observerLast.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && !isLastPage) {
-        const newFetchParams = { endpoint: 'before', requestedDate: recordings[recordings.length - 1].recordings[recordings[recordings.length - 1].recordings.length - 1].mediaDate }
-        setFetchParams(newFetchParams)
+    observerLast.current = new IntersectionObserver(async entries => {
+      if (entries[0].isIntersecting && !infiniteScroll.isLastPage) {
+        const newFetchParams = { endpoint: 'before', requestedDate: new Date().toISOString() }
+        if (infiniteScroll.recordings.length > 0) {
+          newFetchParams.requestedDate= infiniteScroll.recordings[infiniteScroll.recordings.length - 1].recordings[infiniteScroll.recordings[infiniteScroll.recordings.length - 1].recordings.length - 1].mediaDate
+        }
+        await fetchRecordings(newFetchParams)
       }
     })
 
     if (lastRecording) {
       observerLast.current.observe(lastRecording)
     }
-  }, [loading, isLastPage, recordings])
+  }, [infiniteScroll, fetchRecordings])
 
   const firstRecordingRef = useCallback((firstRecording) => {
-    if (loading) {
+    if (infiniteScroll.loading) {
       return
     }
 
@@ -106,84 +194,39 @@ const Dashboard = ({ errorHandler }) => {
       observerFirst.current.disconnect()
     }
 
-    observerFirst.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && !isFirstPage) {
-        const newFetchParams = { endpoint: 'after', requestedDate: recordings[0].recordings[0].mediaDate }
-        setFetchParams(newFetchParams)
+    observerFirst.current = new IntersectionObserver(async entries => {
+      if (entries[0].isIntersecting && !infiniteScroll.isFirstPage) {
+        const newFetchParams = { endpoint: 'after', requestedDate: new Date().toISOString() }
+        if (infiniteScroll.recordings.length > 0) {
+          newFetchParams.requestedDate = infiniteScroll.recordings[0].recordings[0].mediaDate
+        }
+        await fetchRecordings(newFetchParams)
       }
     })
 
     if (firstRecording) {
       observerFirst.current.observe(firstRecording)
     }
-  }, [loading, isFirstPage, recordings])
-
-  useEffect(() => {
-    const fetchRecordings = async () => {
-      try {
-        const responseRecordings = await recordingsServices.getRecordingsByDate(fetchParams.endpoint, fetchParams.requestedDate)
-        if (fetchParams.endpoint === 'before') {
-          if (responseRecordings.count !== 0) {
-            setRecordings((prevRecordings) => {
-              const newRecordings = [...prevRecordings]
-              if (newRecordings.length >= MAX_RECORDINGS) {
-                setIsFirstPage(false)
-                return newRecordings.slice(1).concat(responseRecordings)
-              }
-              return newRecordings.concat(responseRecordings)
-            })
-            setIsLastPage(false)
-          } else {
-            setIsLastPage(true)
-          }
-        } else {
-          if (responseRecordings.count !== 0) {
-            setRecordings((prevRecordings) => {
-              const newRecordings = [...prevRecordings]
-              if (newRecordings.length >= MAX_RECORDINGS) {
-                setIsLastPage(false)
-                return [responseRecordings, ...newRecordings.slice(0, -1)]
-              }
-              return [responseRecordings, ...newRecordings]
-            })
-            setIsFirstPage(false)
-          } else {
-            setIsFirstPage(true)
-          }
-        }
-        setLoading(false)
-      } catch(error) {
-        if (fetchParams.endpoint === 'before') {
-          setIsLastPage(true)
-        } else {
-          setIsFirstPage(true)
-        }
-        setLoading(false)
-        errorHandler(error)
-      }
-    }
-    setLoading(true)
-    fetchRecordings()
-  }, [fetchParams, errorHandler])
+  }, [infiniteScroll, fetchRecordings])
 
   const processDays = () => {
     let days = []
     let recordingsArray = []
     let dayId = 0
 
-    for (let i = 0; i < recordings.length; i++) {
-      recordingsArray = recordingsArray.concat(recordings[i].recordings)
+    for (let i = 0; i < infiniteScroll.recordings.length; i++) {
+      recordingsArray = recordingsArray.concat(infiniteScroll.recordings[i].recordings)
       if (dayId === 0) {
-        dayId = recordings[i]._id
+        dayId = infiniteScroll.recordings[i]._id
       }
-      if (i + 1 < recordings.length) {
-        if (recordings[i + 1].date !== recordings[i].date) {
-          days.push(<DayRecordings key={dayId}  dayIndex={i} dayDate={recordings[i].date} dayRecordings={recordingsArray} />)
+      if (i + 1 < infiniteScroll.recordings.length) {
+        if (infiniteScroll.recordings[i + 1].date !== infiniteScroll.recordings[i].date) {
+          days.push(<DayRecordings key={dayId}  dayIndex={i} dayDate={infiniteScroll.recordings[i].date} dayRecordings={recordingsArray} />)
           dayId = 0
           recordingsArray = []
         }
       } else {
-        days.push(<DayRecordings key={dayId}  dayIndex={i} dayDate={recordings[i].date} dayRecordings={recordingsArray} />)
+        days.push(<DayRecordings key={dayId}  dayIndex={i} dayDate={infiniteScroll.recordings[i].date} dayRecordings={recordingsArray} />)
       }
     }
     return days
@@ -193,8 +236,8 @@ const Dashboard = ({ errorHandler }) => {
     <>
       <div ref={firstRecordingRef} />
       { processDays() }
-      <Skeleton isLoaded={!loading} height="20px">
-        <div ref={lastRecordingRef}>{recordings.length === 0 && isLastPage === true && 'No results'}</div>
+      <Skeleton isLoaded={!infiniteScroll.loading} height="20px">
+        <div ref={lastRecordingRef}>{infiniteScroll.recordings.length === 0 && infiniteScroll.isLastPage === true && 'No results'}</div>
       </Skeleton>
     </>
   )
