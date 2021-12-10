@@ -47,13 +47,13 @@ const RecordingCard = ({ dayIndex, index, recording }) => {
   )
 }
 
-const DayRecordings = ({ dayIndex, dayRecordings }) => {
+const DayRecordings = ({ dayIndex, dayDate, dayRecordings }) => {
   return (
     <Box name={`recordings-${dayIndex}`} p={4}>
-      <Heading>{ new Date(dayRecordings.date).toLocaleDateString()}</Heading>
+      <Heading>{ new Date(dayDate).toLocaleDateString()}</Heading>
       <SimpleGrid minChildWidth="300px" spacing="40px" py={4}>
         {
-          dayRecordings.recordings.map((recording, index) => {
+          dayRecordings.map((recording, index) => {
             return (
               <RecordingCard dayIndex={dayIndex} index={index} recording={recording} key={recording._id} />
             )
@@ -65,83 +65,136 @@ const DayRecordings = ({ dayIndex, dayRecordings }) => {
 }
 
 const Dashboard = ({ errorHandler }) => {
+  const MAX_RECORDINGS = 3
+
   const [recordings, setRecordings] = useState([])
   const [loading, setLoading] = useState(false)
-  const [page, setPage] = useState(1)
+  const [fetchParams, setFetchParams] = useState({ endpoint: 'before', requestedDate: new Date().toISOString() })
   const [isLastPage, setIsLastPage] = useState(true)
+  const [isFirstPage, setIsFirstPage] = useState(true)
 
-  const observer = useRef()
+  const observerLast = useRef()
+  const observerFirst = useRef()
+
   const lastRecordingRef = useCallback((lastRecording) => {
     if (loading) {
       return
     }
 
-    if (observer.current) {
-      observer.current.disconnect()
+    if (observerLast.current) {
+      observerLast.current.disconnect()
     }
 
-    observer.current = new IntersectionObserver(entries => {
+    observerLast.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && !isLastPage) {
-        setPage(prevPageNumber => prevPageNumber + 1)
+        const newFetchParams = { endpoint: 'before', requestedDate: recordings[recordings.length - 1].recordings[recordings[recordings.length - 1].recordings.length - 1].mediaDate }
+        setFetchParams(newFetchParams)
       }
     })
 
     if (lastRecording) {
-      observer.current.observe(lastRecording)
+      observerLast.current.observe(lastRecording)
     }
-  }, [loading, isLastPage])
+  }, [loading, isLastPage, recordings])
+
+  const firstRecordingRef = useCallback((firstRecording) => {
+    if (loading) {
+      return
+    }
+
+    if (observerFirst.current) {
+      observerFirst.current.disconnect()
+    }
+
+    observerFirst.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isFirstPage) {
+        const newFetchParams = { endpoint: 'after', requestedDate: recordings[0].recordings[0].mediaDate }
+        setFetchParams(newFetchParams)
+      }
+    })
+
+    if (firstRecording) {
+      observerFirst.current.observe(firstRecording)
+    }
+  }, [loading, isFirstPage, recordings])
 
   useEffect(() => {
     const fetchRecordings = async () => {
       try {
-        const responseRecordings = await recordingsServices.getRecordingsByPage(page)
-        if (responseRecordings.count !== 0) {
-          setRecordings((prevRecordings) => {
-            const prevRecordingsLength = prevRecordings.length
-            if(prevRecordingsLength === 0) {
-              return [responseRecordings]
-            }
-
-            //If received recordings belong to an existing date: merge, otherwise, add at the end of array
-            if (prevRecordings[prevRecordingsLength - 1].date === responseRecordings.date) {
-              const newRecording = {
-                _id: prevRecordings[prevRecordingsLength - 1]._id,
-                count: prevRecordings[prevRecordingsLength - 1].count + responseRecordings.count,
-                date: responseRecordings.date,
-                recordings: prevRecordings[prevRecordingsLength - 1].recordings.concat(responseRecordings.recordings)
+        const responseRecordings = await recordingsServices.getRecordingsByDate(fetchParams.endpoint, fetchParams.requestedDate)
+        if (fetchParams.endpoint === 'before') {
+          if (responseRecordings.count !== 0) {
+            setRecordings((prevRecordings) => {
+              const newRecordings = [...prevRecordings]
+              if (newRecordings.length >= MAX_RECORDINGS) {
+                setIsFirstPage(false)
+                return newRecordings.slice(1).concat(responseRecordings)
               }
-
-              return [...prevRecordings.slice(0, -1), newRecording]
-            } else {
-              return [...prevRecordings, responseRecordings]
-            }
-          })
-          setIsLastPage(false)
+              return newRecordings.concat(responseRecordings)
+            })
+            setIsLastPage(false)
+          } else {
+            setIsLastPage(true)
+          }
         } else {
-          setIsLastPage(true)
+          if (responseRecordings.count !== 0) {
+            setRecordings((prevRecordings) => {
+              const newRecordings = [...prevRecordings]
+              if (newRecordings.length >= MAX_RECORDINGS) {
+                setIsLastPage(false)
+                return [responseRecordings, ...newRecordings.slice(0, -1)]
+              }
+              return [responseRecordings, ...newRecordings]
+            })
+            setIsFirstPage(false)
+          } else {
+            setIsFirstPage(true)
+          }
         }
         setLoading(false)
       } catch(error) {
-        setIsLastPage(true)
+        if (fetchParams.endpoint === 'before') {
+          setIsLastPage(true)
+        } else {
+          setIsFirstPage(true)
+        }
         setLoading(false)
         errorHandler(error)
       }
     }
     setLoading(true)
     fetchRecordings()
-  }, [page, errorHandler])
+  }, [fetchParams, errorHandler])
+
+  const processDays = () => {
+    let days = []
+    let recordingsArray = []
+    let dayId = 0
+
+    for (let i = 0; i < recordings.length; i++) {
+      recordingsArray = recordingsArray.concat(recordings[i].recordings)
+      if (dayId === 0) {
+        dayId = recordings[i]._id
+      }
+      if (i + 1 < recordings.length) {
+        if (recordings[i + 1].date !== recordings[i].date) {
+          days.push(<DayRecordings key={dayId}  dayIndex={i} dayDate={recordings[i].date} dayRecordings={recordingsArray} />)
+          dayId = 0
+          recordingsArray = []
+        }
+      } else {
+        days.push(<DayRecordings key={dayId}  dayIndex={i} dayDate={recordings[i].date} dayRecordings={recordingsArray} />)
+      }
+    }
+    return days
+  }
 
   return (
     <>
-      {
-        recordings.map((dayRecording, index) => {
-          return (
-            <DayRecordings key={dayRecording._id}  dayIndex={index} dayRecordings={dayRecording} />
-          )
-        })
-      }
+      <div ref={firstRecordingRef} />
+      { processDays() }
       <Skeleton isLoaded={!loading} height="20px">
-        <div ref={lastRecordingRef}>{page === 1 && isLastPage === true && 'No results'}</div>
+        <div ref={lastRecordingRef}>{recordings.length === 0 && isLastPage === true && 'No results'}</div>
       </Skeleton>
     </>
   )
