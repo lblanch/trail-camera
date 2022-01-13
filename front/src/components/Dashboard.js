@@ -178,7 +178,7 @@ const Dashboard = ({ errorHandler }) => {
         }
         await fetchRecordings(newFetchParams)
       }
-    })
+    }, { rootMargin:  '0px 0px 500px 0px' })
 
     if (lastRecording) {
       observerLast.current.observe(lastRecording)
@@ -202,7 +202,7 @@ const Dashboard = ({ errorHandler }) => {
         }
         await fetchRecordings(newFetchParams)
       }
-    })
+    }, { rootMargin:  '500px 0px 0px 0px' })
 
     if (firstRecording) {
       observerFirst.current.observe(firstRecording)
