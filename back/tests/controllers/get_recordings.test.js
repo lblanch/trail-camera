@@ -483,7 +483,7 @@ const commonSuccessfulWhileLoggedInTests = (userType) => {
   })
 }
 
-const commonUnsuccesfulUsingPaginationWhileLoggedInTests = (userType) => {
+const commonUnsuccessfulUsingPaginationWhileLoggedInTests = (userType) => {
   let agent
   beforeAll(() => {
     if (userType === 'basic') {
@@ -521,7 +521,7 @@ const commonUnsuccesfulUsingPaginationWhileLoggedInTests = (userType) => {
   })
 }
 
-const commonUnsuccesfulUsingDatesWhileLoggedInTests = (endpoint, userType) => {
+const commonUnsuccessfulUsingDatesWhileLoggedInTests = (endpoint, userType) => {
   let agent
   beforeAll(() => {
     if (userType === 'basic') {
@@ -586,12 +586,12 @@ describe('The collection is not empty', () => {
   describe.each([
     ['basic'],
     ['admin']
-  ])('unsuccessful, while using pagination and being logged in as %s user', commonUnsuccesfulUsingPaginationWhileLoggedInTests)
+  ])('unsuccessful, while using pagination and being logged in as %s user', commonUnsuccessfulUsingPaginationWhileLoggedInTests)
 
   describe.each([
     ['before', 'basic'],
     ['before', 'admin'],
     ['after', 'basic'],
     ['after', 'admin']
-  ])('unsuccessful, while using %s endpoint and being logged in as %s user', commonUnsuccesfulUsingDatesWhileLoggedInTests)
+  ])('unsuccessful, while using %s endpoint and being logged in as %s user', commonUnsuccessfulUsingDatesWhileLoggedInTests)
 })
