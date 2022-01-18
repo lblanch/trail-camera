@@ -47,7 +47,8 @@ const parseEmail = async (downloadedEmailContent, timezoneHours) => {
     newCameraInput.mediaDate = newCameraInput.emailDeliveryDate
   }
 
-  const fileKey = `${newCameraInput.mediaDate.getTime()}_${parsedEmail.attachments[0].filename}`
+  const devFolder = process.env.NODE_ENV === 'development' ? 'dev/' : ''
+  const fileKey = `${devFolder}${newCameraInput.mediaDate.getTime()}_${parsedEmail.attachments[0].filename}`
   const metadata = { mediaDate: newCameraInput.mediaDate.toISOString() }
   const mediaUrl = await sendFileToS3(parsedEmail.attachments[0].content, fileKey, metadata)
   logger.info(LOG_TAG, 'picture uploaded to S3')
