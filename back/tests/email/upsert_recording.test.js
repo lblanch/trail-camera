@@ -4,15 +4,13 @@ require('dotenv').config()
 const { upsertRecording } = require('../../services/recordings')
 const Recording = require('../../models/recording')
 const { initialRecordings, reloadRecordings, clearRecordings } = require('../helpers/recordings_helper')
-const { upsertEmailWithAttachments } = require('../helpers/email_helper')
 
+let upsertEmailWithAttachments
+let expectedUpsertResult
 let recordingAmountCount
 
 beforeAll(async () => {
   await mongoose.connect(process.env.TEST_MONGODB_URI)
-
-  //Add empty tags array, which would be created by default in the db
-  upsertEmailWithAttachments.tags = []
 })
 
 beforeEach(async () => {
@@ -25,64 +23,152 @@ afterAll(async () => {
   await mongoose.disconnect()
 })
 
-describe('when document with same date already exists', () => {
-  test('it has less than 20 records, updates recordings array', async () => {
-    upsertEmailWithAttachments.mediaDate.setDate(5)
+const commonUpsertDifferentRecordingsTests = (recordingType) => {
+  beforeAll(() => {
+    upsertEmailWithAttachments = {
+      mediaDate: new Date('2021-02-05T17:42:44.000Z'),
+      emailDeliveryDate: new Date('2021-07-21T15:18:11.000Z'),
+      sentTo: 'Receiver name <receiver@example.com>',
+      sentFrom: 'sender name <sender@example.com>',
+      mediaType: 'image/png',
+      mediaThumbnailURL: 'https://someMediaUrl.com/myPic.jpg',
+      mediaURL: 'https://someMediaUrl.com/myPic.jpg'
+    }
 
-    const result = await upsertRecording(upsertEmailWithAttachments)
-    const recordingAmountAfter = await Recording.estimatedDocumentCount()
-
-    const earliestTime = new Date(initialRecordings[3].recording.mediaDate).getTime()
-    const updatedRecording = await Recording.findOne({ 'earliestTime': earliestTime })
-    let updatedRecordingEntry = JSON.parse(JSON.stringify(updatedRecording.recordings[updatedRecording.count - 1]))
-    delete updatedRecordingEntry._id
-
-    expect(recordingAmountAfter).toEqual(recordingAmountCount)
-    expect(result.modifiedCount).toEqual(1)
-    expect(updatedRecording.recordings).toHaveLength(initialRecordings[3].count + 1)
-    expect(updatedRecording.count).toEqual(initialRecordings[3].count + 1)
-    expect(JSON.stringify(updatedRecordingEntry)).toEqual(JSON.stringify(upsertEmailWithAttachments))
+    if (recordingType === 'missing subject') {
+      upsertEmailWithAttachments.emailBody = {
+        photo: '[10/Unlimited]',
+        date: '05.02.21',
+        time: '20:42:44',
+        temperature: '23 degree Celsius(C)',
+        battery: '80%',
+        signal: 'Good',
+        'sd-card-free-space': '14.42 GB of 14.91 GB(96.71%)'
+      }
+      upsertEmailWithAttachments.tags=[{ tag: 'tagged', color: 'red.400' }]
+      expectedUpsertResult = { ...upsertEmailWithAttachments, subject: '' }
+    } else if (recordingType === 'undefined subject') {
+      upsertEmailWithAttachments.emailBody = {
+        photo: '[10/Unlimited]',
+        date: '05.02.21',
+        time: '20:42:44',
+        temperature: '23 degree Celsius(C)',
+        battery: '80%',
+        signal: 'Good',
+        'sd-card-free-space': '14.42 GB of 14.91 GB(96.71%)'
+      }
+      upsertEmailWithAttachments.subject = undefined
+      upsertEmailWithAttachments.tags=[{ tag: 'tagged', color: 'red.400' }]
+      expectedUpsertResult = { ...upsertEmailWithAttachments, subject: '' }
+    } else if(recordingType === 'empty email body') {
+      upsertEmailWithAttachments.emailBody = {}
+      upsertEmailWithAttachments.subject = 'test with small image'
+      upsertEmailWithAttachments.tags=[{ tag: 'tagged', color: 'red.400' }]
+      expectedUpsertResult = { ...upsertEmailWithAttachments }
+    } else if (recordingType === 'all fields') {
+      upsertEmailWithAttachments.emailBody = {
+        photo: '[10/Unlimited]',
+        date: '05.02.21',
+        time: '20:42:44',
+        temperature: '23 degree Celsius(C)',
+        battery: '80%',
+        signal: 'Good',
+        'sd-card-free-space': '14.42 GB of 14.91 GB(96.71%)'
+      }
+      upsertEmailWithAttachments.subject = 'test with small image'
+      upsertEmailWithAttachments.tags=[{ tag: 'tagged', color: 'red.400' }]
+      expectedUpsertResult = { ...upsertEmailWithAttachments }
+    } else if (recordingType === 'missing tags') {
+      upsertEmailWithAttachments.emailBody = {
+        photo: '[10/Unlimited]',
+        date: '05.02.21',
+        time: '20:42:44',
+        temperature: '23 degree Celsius(C)',
+        battery: '80%',
+        signal: 'Good',
+        'sd-card-free-space': '14.42 GB of 14.91 GB(96.71%)'
+      }
+      upsertEmailWithAttachments.subject = 'test with small image'
+      expectedUpsertResult = { ...upsertEmailWithAttachments, tags: [] }
+    }
   })
 
-  test('it has 20 records, creates new document with same date', async () => {
-    upsertEmailWithAttachments.mediaDate.setDate(7)
+  describe('when document with same date already exists', () => {
+    test('it has less than 20 records, updates recordings array', async () => {
+      const documentToUpdateDate = new Date(initialRecordings[3].recording.mediaDate)
+      const earliestTime = documentToUpdateDate.getTime()
+      upsertEmailWithAttachments.mediaDate.setUTCDate(documentToUpdateDate.getUTCDate())
+      expectedUpsertResult.mediaDate.setUTCDate(documentToUpdateDate.getUTCDate())
+      const expectedUpsertResultParsed = JSON.parse(JSON.stringify(expectedUpsertResult))
+
+      const result = await upsertRecording(upsertEmailWithAttachments)
+      const recordingAmountAfter = await Recording.estimatedDocumentCount()
+
+      const updatedRecording = await Recording.findOne({ 'earliestTime': earliestTime }).select({ 'recordings._id': 0, 'recordings.tags._id': 0 })
+      let updatedRecordingEntry = JSON.parse(JSON.stringify(updatedRecording.recordings[updatedRecording.count - 1]))
+
+      expect(recordingAmountAfter).toEqual(recordingAmountCount)
+      expect(result.modifiedCount).toEqual(1)
+      expect(updatedRecording.recordings).toHaveLength(initialRecordings[3].count + 1)
+      expect(updatedRecording.count).toEqual(initialRecordings[3].count + 1)
+      for (const property in updatedRecordingEntry) {
+        expect(updatedRecordingEntry[property]).toEqual(expectedUpsertResultParsed[property])
+      }
+    })
+
+    test('it has 20 records, creates new document with same date', async () => {
+      const documentToCreateDate = new Date(initialRecordings[0].recording.mediaDate)
+      upsertEmailWithAttachments.mediaDate.setUTCDate(documentToCreateDate.getUTCDate())
+      expectedUpsertResult.mediaDate.setUTCDate(documentToCreateDate.getUTCDate())
+      const expectedUpsertResultParsed = JSON.parse(JSON.stringify(expectedUpsertResult))
+
+      const result = await upsertRecording(upsertEmailWithAttachments)
+
+      const recordingAmountAfter = await Recording.estimatedDocumentCount()
+      const createdRecording = await Recording.findOne({ 'earliestTime': upsertEmailWithAttachments.mediaDate }).select({ 'recordings._id': 0, 'recordings.tags._id': 0 })
+      let createdRecordingEntry = JSON.parse(JSON.stringify(createdRecording.recordings[0]))
+
+      expect(recordingAmountAfter).toEqual(recordingAmountCount + 1)
+      expect(result.modifiedCount).toEqual(0)
+      expect(createdRecording.recordings).toHaveLength(1)
+      expect(createdRecording.count).toEqual(1)
+      expect(createdRecording.date.getUTCDate()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCDate())
+      expect(createdRecording.date.getUTCMonth()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCMonth())
+      expect(createdRecording.date.getUTCFullYear()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCFullYear())
+      for (const property in createdRecordingEntry) {
+        expect(createdRecordingEntry[property]).toEqual(expectedUpsertResultParsed[property])
+      }
+    })
+  })
+
+  test('when document with same date does not exist creates new document with same date', async () => {
+    upsertEmailWithAttachments.mediaDate.setDate(10)
+    expectedUpsertResult.mediaDate.setUTCDate(10)
+    const expectedUpsertResultParsed = JSON.parse(JSON.stringify(expectedUpsertResult))
 
     const result = await upsertRecording(upsertEmailWithAttachments)
 
     const recordingAmountAfter = await Recording.estimatedDocumentCount()
-    const createdRecording = await Recording.findOne({ 'earliestTime': upsertEmailWithAttachments.mediaDate })
-    //Remove _id property for easier comparison
+    const createdRecording = await Recording.findOne({ 'earliestTime': upsertEmailWithAttachments.mediaDate }).select({ 'recordings._id': 0, 'recordings.tags._id': 0 })
     let createdRecordingEntry = JSON.parse(JSON.stringify(createdRecording.recordings[0]))
-    delete createdRecordingEntry._id
 
     expect(recordingAmountAfter).toEqual(recordingAmountCount + 1)
     expect(result.modifiedCount).toEqual(0)
     expect(createdRecording.recordings).toHaveLength(1)
     expect(createdRecording.count).toEqual(1)
-    expect(JSON.stringify(createdRecordingEntry)).toEqual(JSON.stringify(upsertEmailWithAttachments))
     expect(createdRecording.date.getUTCDate()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCDate())
     expect(createdRecording.date.getUTCMonth()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCMonth())
     expect(createdRecording.date.getUTCFullYear()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCFullYear())
+    for (const property in createdRecordingEntry) {
+      expect(createdRecordingEntry[property]).toEqual(expectedUpsertResultParsed[property])
+    }
   })
-})
+}
 
-test('when document with same date does not exist creates new document with same date', async () => {
-  upsertEmailWithAttachments.mediaDate.setDate(10)
-
-  const result = await upsertRecording(upsertEmailWithAttachments)
-
-  const recordingAmountAfter = await Recording.estimatedDocumentCount()
-  const createdRecording = await Recording.findOne({ 'earliestTime': upsertEmailWithAttachments.mediaDate })
-  //Remove _id property for easier comparison
-  let createdRecordingEntry = JSON.parse(JSON.stringify(createdRecording.recordings[0]))
-  delete createdRecordingEntry._id
-
-  expect(recordingAmountAfter).toEqual(recordingAmountCount + 1)
-  expect(result.modifiedCount).toEqual(0)
-  expect(createdRecording.recordings).toHaveLength(1)
-  expect(createdRecording.count).toEqual(1)
-  expect(JSON.stringify(createdRecordingEntry)).toEqual(JSON.stringify(upsertEmailWithAttachments))
-  expect(createdRecording.date.getUTCDate()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCDate())
-  expect(createdRecording.date.getUTCMonth()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCMonth())
-  expect(createdRecording.date.getUTCFullYear()).toEqual(upsertEmailWithAttachments.mediaDate.getUTCFullYear())
-})
+describe.each([
+  ['missing subject'],
+  ['undefined subject'],
+  ['empty email body'],
+  ['missing tags'],
+  ['all fields']
+])('upserting recording with %s', commonUpsertDifferentRecordingsTests)

@@ -45,6 +45,7 @@ const parseEmail = async (downloadedEmailContent, timezoneHours) => {
   } else {
     logger.info(LOG_TAG, 'email body does not have any text, using email delivery date')
     newCameraInput.mediaDate = newCameraInput.emailDeliveryDate
+    newCameraInput.emailBody = {}
   }
 
   const devFolder = process.env.NODE_ENV === 'development' ? 'dev/' : ''
