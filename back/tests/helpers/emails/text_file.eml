@@ -1,0 +1,35 @@
+From: sender name <sender@example.com>
+To: Receiver name <receiver@example.com>
+Date: Wed, 21 Jul 2021 18:18:11 +0300
+Message-ID: <abcde>
+Subject: test with text file
+Content-Type: multipart/mixed; boundary="000000000000c018f305d72fe90a"
+
+--000000000000c018f305d72fe90a
+Content-Type: multipart/alternative; boundary="000000000000c018f105d72fe908"
+
+--000000000000c018f105d72fe908
+Content-Type: text/plain; charset="UTF-8"
+
+Photo: [3/Unlimited]
+The camera also takes a 10s video in SD card.
+Video length: 10 sec
+Date: 05.01.22
+Time: 15:32:23
+Temperature: 26 degree Celsius(C)
+Battery: 100%
+Signal: Good
+SD card free space: 27.23 GB of 28.88 GB(94.31%)
+P
+
+--000000000000c018f105d72fe908--
+
+--000000000000c018f305d72fe90a
+Content-Type: text/plain; charset="US-ASCII"; name="test.txt"
+Content-Disposition: attachment; filename="test.txt"
+Content-Transfer-Encoding: base64
+Content-ID: <f_kz8cn9zq0>
+X-Attachment-Id: f_kz8cn9zq0
+
+VGhpcyBpcyBhIHRlc3QgdGV4dCBmaWxlCg==
+--000000000000c018f305d72fe90a--

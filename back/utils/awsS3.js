@@ -1,4 +1,5 @@
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
+const fs = require('fs')
 
 const logger = require('./logger')
 
@@ -9,11 +10,12 @@ const createS3Client = () => {
 }
 
 const sendFileToS3 = async (attachment, fileKey, metadata = {}) => {
+  const fileStream = fs.createReadStream(attachment)
   const uploadParams = {
     Bucket: process.env.AWS_BUCKET,
     Key: fileKey,
     Metadata: metadata,
-    Body: attachment
+    Body: fileStream
   }
 
   // Upload file to specified bucket.

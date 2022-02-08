@@ -1,10 +1,85 @@
 jest.mock('../../utils/awsS3')
 jest.mock('../../services/recordings')
+jest.mock('fluent-ffmpeg')
+
+const fs = require('fs')
+const path = require('path')
+const mockedFfmpeg = require('fluent-ffmpeg')
+
 const mockedAwsS3 = require('../../utils/awsS3')
 const mockedRecordings = require('../../services/recordings')
 const { parseEmail, parseEmailText } = require('../../email-parser')
 
 const CAMERA_TIMEZONE = 3
+
+const commonProcessVideoTests = (videoSeconds, videoFilename, emailFilename) => {
+  let filename = path.resolve('tests/helpers/emails/', emailFilename)
+  const thumbnailURL = 'https://someMediaUrl.com/myGif.gif'
+  const mediaURL = 'https://someMediaUrl.com/myVideo.mp4'
+
+  beforeAll(() => {
+    mockedFfmpeg.mockImplementation(function() {
+      this.input= jest.fn().mockReturnThis(),
+      this.noAudio = jest.fn().mockReturnThis(),
+      this.format = jest.fn().mockReturnThis(),
+      this.videoFilters = jest.fn().mockReturnThis(),
+      this.outputOptions = jest.fn().mockReturnThis(),
+      this.output = jest.fn().mockReturnThis(),
+      this.on = jest.fn((type, callback) => {
+        if (type === 'end')
+          callback('output.file')
+        return this
+      })
+      this.run = jest.fn(() => 'mocked output file'),
+      this.ffprobe = jest.fn((callback) => {
+        callback(false, { streams: [{ width: 445 }], format: { duration: videoSeconds } })
+      })
+    })
+  })
+
+  beforeEach(() => {
+    mockedAwsS3.sendFileToS3
+      .mockReturnValueOnce(mediaURL)
+      .mockReturnValueOnce(thumbnailURL)
+
+    mockedFfmpeg.mockClear()
+  })
+
+  test('it calls ffmpeg with right options to generate a 5 frame gif, uploads both gif and original video to S3 and creates entry to DB', async () => {
+    const emailStream = fs.createReadStream(filename)
+    const fps = videoSeconds/5
+
+    await parseEmail(emailStream, CAMERA_TIMEZONE)
+
+    //FFmpeg constructor should have been called
+    expect(mockedFfmpeg).toHaveBeenCalledTimes(1)
+
+    //Get the mocked ffmpeg instance
+    const ffmpegMockedInstance = mockedFfmpeg.mock.instances[0]
+
+    expect(ffmpegMockedInstance.ffprobe).toHaveBeenCalledTimes(1)
+    expect(ffmpegMockedInstance.input).toHaveBeenCalledTimes(2)
+    expect(ffmpegMockedInstance.format).toHaveBeenCalledTimes(1)
+    expect(ffmpegMockedInstance.videoFilters).toHaveBeenCalledTimes(1)
+    expect(ffmpegMockedInstance.outputOptions).toHaveBeenCalledTimes(1)
+    expect(mockedAwsS3.sendFileToS3).toHaveBeenCalledTimes(2)
+    expect(mockedRecordings.upsertRecording).toHaveBeenCalledTimes(1)
+
+    const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+    const uploadedVideoFilename = mockedAwsS3.sendFileToS3.mock.calls[0][1]
+    const uploadedGifFilename = mockedAwsS3.sendFileToS3.mock.calls[1][1]
+
+    expect(ffmpegMockedInstance.input).toHaveBeenCalledWith('/tmp/' + videoFilename)
+    expect(ffmpegMockedInstance.format).toHaveBeenCalledWith('gif')
+    expect(ffmpegMockedInstance.videoFilters).toHaveBeenCalledWith('fps=1/' + fps, 'scale=445:-1' ,'settb=1/2', 'setpts=N')
+    expect(ffmpegMockedInstance.outputOptions).toHaveBeenCalledWith('-r 2')
+    expect(uploadedGifFilename).toMatch(/^.*\.(gif)$/)
+    expect(uploadedVideoFilename).toMatch(/^.*\.(mp4)$/)
+    expect(generatedUpsert).toBeDefined()
+    expect(generatedUpsert.mediaThumbnailURL).toEqual(thumbnailURL)
+    expect(generatedUpsert.mediaURL).toEqual(mediaURL)
+  }, 50000)
+}
 
 describe('Extracting data in received emails', () => {
   beforeEach(() => {
@@ -26,9 +101,158 @@ describe('Extracting data in received emails', () => {
 
     expect(mockedAwsS3.sendFileToS3).not.toHaveBeenCalled()
     expect(mockedRecordings.upsertRecording).not.toHaveBeenCalled()
+    expect(mockedFfmpeg).not.toHaveBeenCalled()
   })
 
-  describe('from email headers and email body text', () => {
+  test('with attachment not being video or image, doesn\'t create a new recording in DB and doesn\'t try to store it to S3', async () => {
+    const emailStream = fs.createReadStream('tests/helpers/emails/text_file.eml')
+
+    await expect(parseEmail(emailStream, CAMERA_TIMEZONE))
+      .rejects.toThrow('email attachments are neither images nor videos')
+
+    expect(mockedAwsS3.sendFileToS3).not.toHaveBeenCalled()
+    expect(mockedRecordings.upsertRecording).not.toHaveBeenCalled()
+    expect(mockedFfmpeg).not.toHaveBeenCalled()
+  })
+
+  describe('processing image attachments', () => {
+    const thumbnailURL = 'https://someMediaUrl.com/mySmallerImage.jpg'
+    const mediaURL = 'https://someMediaUrl.com/myImage.jpg'
+
+    beforeEach(() => {
+      mockedAwsS3.sendFileToS3
+        .mockReturnValueOnce(mediaURL)
+        .mockReturnValueOnce(thumbnailURL)
+
+      mockedFfmpeg.mockClear()
+    })
+
+    test('with image width bigger than 445px, it calls ffmpeg with right options to resize it, uploads both resized and original images to S3 and creates entry to DB', async () => {
+      mockedFfmpeg.mockImplementation(function() {
+        this.input= jest.fn().mockReturnThis(),
+        this.noAudio = jest.fn().mockReturnThis(),
+        this.format = jest.fn().mockReturnThis(),
+        this.videoFilters = jest.fn().mockReturnThis(),
+        this.on = jest.fn((type, callback) => {
+          if (type === 'end')
+            callback('output.file')
+          return this
+        })
+        this.output = jest.fn().mockReturnThis(),
+        this.run = jest.fn(() => 'mocked file output'),
+        this.ffprobe = jest.fn((callback) => {
+          callback(false, { streams: [{ width: 960 }], format: { duration: 0 } })
+        })
+      })
+
+      const emailStream = fs.createReadStream('tests/helpers/emails/picture.eml')
+
+      await parseEmail(emailStream, CAMERA_TIMEZONE)
+
+      //FFmpeg constructor should have been called
+      expect(mockedFfmpeg).toHaveBeenCalledTimes(1)
+
+      //Get the mocked ffmpeg instance
+      const ffmpegMockedInstance = mockedFfmpeg.mock.instances[0]
+
+      expect(ffmpegMockedInstance.ffprobe).toHaveBeenCalledTimes(1)
+      expect(ffmpegMockedInstance.input).toHaveBeenCalledTimes(2)
+      expect(ffmpegMockedInstance.format).toHaveBeenCalledTimes(1)
+      expect(ffmpegMockedInstance.videoFilters).toHaveBeenCalledTimes(1)
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalledTimes(2)
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalledTimes(1)
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+      const uploadedPictureFilename = mockedAwsS3.sendFileToS3.mock.calls[0][1]
+      const uploadedThumbnailFilename = mockedAwsS3.sendFileToS3.mock.calls[1][1]
+
+      expect(ffmpegMockedInstance.input).toHaveBeenCalledWith('/tmp/' +'thumb0005.jpg')
+      expect(ffmpegMockedInstance.format).toHaveBeenCalledWith('jpg')
+      expect(ffmpegMockedInstance.videoFilters).toHaveBeenCalledWith('scale=445:-1')
+      expect(uploadedPictureFilename).toMatch(/^.*\.(jpg)$/)
+      expect(uploadedThumbnailFilename).toMatch(/^.*\.(jpg)$/)
+      expect(generatedUpsert).toBeDefined()
+      expect(generatedUpsert.mediaThumbnailURL).toEqual(thumbnailURL)
+      expect(generatedUpsert.mediaURL).toEqual(mediaURL)
+    })
+
+    test('with image width exactly 445px, uploads original image to S3 and creates entry to DB using the original media url as thumbnail', async () => {
+      mockedFfmpeg.mockImplementation(function() {
+        this.input= jest.fn().mockReturnThis(),
+        this.noAudio = jest.fn().mockReturnThis(),
+        this.format = jest.fn().mockReturnThis(),
+        this.videoFilters = jest.fn().mockReturnThis(),
+        this.on = jest.fn().mockReturnThis(),
+        this.output = jest.fn().mockReturnThis(),
+        this.run = jest.fn(() => 'mocked file output'),
+        this.ffprobe = jest.fn((callback) => {
+          callback(false, { streams: [{ width: 445 }], format: { duration: 0 } })
+        })
+      })
+
+      const emailStream = fs.createReadStream('tests/helpers/emails/picture_445.eml')
+
+      await parseEmail(emailStream, CAMERA_TIMEZONE)
+
+      //FFmpeg constructor should have been called
+      expect(mockedFfmpeg).toHaveBeenCalledTimes(1)
+
+      //Get the mocked ffmpeg instance
+      const ffmpegMockedInstance = mockedFfmpeg.mock.instances[0]
+
+      expect(ffmpegMockedInstance.ffprobe).toHaveBeenCalledTimes(1)
+      expect(ffmpegMockedInstance.input).toHaveBeenCalledTimes(1)
+      expect(ffmpegMockedInstance.format).not.toHaveBeenCalled()
+      expect(ffmpegMockedInstance.videoFilters).not.toHaveBeenCalled()
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalledTimes(1)
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalledTimes(1)
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+
+      expect(generatedUpsert).toBeDefined()
+      expect(generatedUpsert.mediaThumbnailURL).toEqual(mediaURL)
+      expect(generatedUpsert.mediaURL).toEqual(mediaURL)
+    })
+
+    test('with image width less than 445px, uploads original image to S3 and creates entry to DB using the original media url as thumbnail', async () => {
+      mockedFfmpeg.mockImplementation(function() {
+        this.input= jest.fn().mockReturnThis(),
+        this.noAudio = jest.fn().mockReturnThis(),
+        this.format = jest.fn().mockReturnThis(),
+        this.videoFilters = jest.fn().mockReturnThis(),
+        this.on = jest.fn().mockReturnThis(),
+        this.pipe = jest.fn(() => 'mocked stream'),
+        this.ffprobe = jest.fn((callback) => {
+          callback(false, { streams: [{ width: 360 }], format: { duration: 0 } })
+        })
+      })
+
+      const emailStream = fs.createReadStream('tests/helpers/emails/picture_360.eml')
+
+      await parseEmail(emailStream, CAMERA_TIMEZONE)
+
+      //FFmpeg constructor should have been called
+      expect(mockedFfmpeg).toHaveBeenCalledTimes(1)
+
+      //Get the mocked ffmpeg instance
+      const ffmpegMockedInstance = mockedFfmpeg.mock.instances[0]
+
+      expect(ffmpegMockedInstance.ffprobe).toHaveBeenCalledTimes(1)
+      expect(ffmpegMockedInstance.input).toHaveBeenCalledTimes(1)
+      expect(ffmpegMockedInstance.format).not.toHaveBeenCalled()
+      expect(ffmpegMockedInstance.videoFilters).not.toHaveBeenCalled()
+      expect(mockedAwsS3.sendFileToS3).toHaveBeenCalledTimes(1)
+      expect(mockedRecordings.upsertRecording).toHaveBeenCalledTimes(1)
+
+      const generatedUpsert = mockedRecordings.upsertRecording.mock.calls[0][0]
+
+      expect(generatedUpsert).toBeDefined()
+      expect(generatedUpsert.mediaThumbnailURL).toEqual(mediaURL)
+      expect(generatedUpsert.mediaURL).toEqual(mediaURL)
+    })
+  })
+
+  describe('from email headers and email body text when attachment is present', () => {
     const mediaType = 'image/png'
     const mediaUrl = 'https://someMediaUrl.com/myPic.jpg'
     const senderEmail = 'sender name <sender@example.com>'
@@ -529,6 +753,15 @@ describe('Extracting data in received emails', () => {
       expect(generatedUpsert.emailBody.date).toBeUndefined()
       expect(generatedUpsert.emailBody.time).toEqual(bodyTime)
     })
+  })
+
+  describe('processing video attachments', () => {
+    describe.each([
+      [2,'two_sec2.mp4', 'two_sec_video.eml'],
+      [5,'five_sec2.mp4', 'five_sec_video.eml'],
+      [10, 'ten_sec2.mp4', 'ten_sec_video.eml'],
+      [15, 'fifteen_sec2.mp4', 'fifteen_sec_video.eml']
+    ])('%ss video received', commonProcessVideoTests)
   })
 })
 
