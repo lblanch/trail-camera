@@ -104,6 +104,17 @@ describe('Extracting data in received emails', () => {
     expect(mockedFfmpeg).not.toHaveBeenCalled()
   })
 
+  test('with more than one attachment, doesn\'t create a new recording in DB and doesn\'t try to store it to S3', async () => {
+    const emailStream = fs.createReadStream('tests/helpers/emails/multiple_attachments.eml')
+
+    await expect(parseEmail(emailStream, CAMERA_TIMEZONE))
+      .rejects.toThrow('email has too many attachments')
+
+    expect(mockedAwsS3.sendFileToS3).not.toHaveBeenCalled()
+    expect(mockedRecordings.upsertRecording).not.toHaveBeenCalled()
+    expect(mockedFfmpeg).not.toHaveBeenCalled()
+  })
+
   test('with attachment not being video or image, doesn\'t create a new recording in DB and doesn\'t try to store it to S3', async () => {
     const emailStream = fs.createReadStream('tests/helpers/emails/text_file.eml')
 

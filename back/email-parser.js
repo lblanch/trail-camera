@@ -66,6 +66,8 @@ const parseEmail = async (downloadedEmailContent, timezoneHours) => {
 
   if (parsedEmail.attachments.length < 1) {
     throw new Error('email doesn\'t have attachments' )
+  } else if (parsedEmail.attachments.length > 1) {
+    throw new Error('email has too many attachments' )
   }
 
   const mediaTypeSplit = parsedEmail.attachments[0].contentType.split('/')
