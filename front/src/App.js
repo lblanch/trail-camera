@@ -5,7 +5,6 @@ import { Skeleton } from '@chakra-ui/react'
 import LoginForm from './components/LoginForm'
 import Header from './components/Header'
 import Dashboard from './components/Dashboard'
-import Recording from './components/Recording'
 import Notification from './components/Notification'
 import authServices from './services/auth'
 
@@ -15,12 +14,6 @@ const AppSwitch = ({ user, loginUser, errorHandler }) => (
       { user === null
         ? <LoginForm loginUser={loginUser} />
         : <Redirect to="/dashboard" />
-      }
-    </Route>
-    <Route path="/dashboard/:recordingId">
-      { user === null
-        ? <Redirect to="/login" />
-        : <Recording />
       }
     </Route>
     <Route path="/dashboard">

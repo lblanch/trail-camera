@@ -1,11 +1,7 @@
-/* eslint-disable no-dupe-keys */
-import { Link as RouterLink } from 'react-router-dom'
 import React from 'react'
-import { useLocation } from 'react-router-dom'
-import { Link, IconButton, Flex, Container, List, Stack, WrapItem,
-  ListItem, ListIcon, Image, Wrap, Tag, TagLeftIcon, TagLabel,
-  TagCloseButton } from '@chakra-ui/react'
-import { FaArrowLeft, FaTag, FaCircle, FaThermometerHalf, FaCalendarAlt, FaClock } from 'react-icons/fa'
+import { Flex, Center, List, Stack, WrapItem, ListItem, ListIcon,
+  Image, Wrap, Tag, TagLeftIcon, TagLabel, TagCloseButton } from '@chakra-ui/react'
+import { FaTag, FaCircle, FaThermometerHalf, FaCalendarAlt, FaClock } from 'react-icons/fa'
 
 const RecordingVideo = ({ videoUrl, mediaType }) => {
   return (
@@ -15,19 +11,11 @@ const RecordingVideo = ({ videoUrl, mediaType }) => {
   )
 }
 
-const Recording = (props) => {
-  // TODO: if we didn't receive a recording, fetch it from the server with the recording id
-  //const { recordingId } = useParams()
-  const location = useLocation()
-  const { recording } = location.state
+const Recording = ({ recording }) => {
   const mediaTypeSplit = recording.mediaType.split('/')
-  console.log('mediatype: ', recording.mediaType, 'mediatypesplit: ', mediaTypeSplit)
 
   return (
-    <Container maxW={'5xl'}>
-      <Link as={RouterLink} to="/dashboard">
-        <IconButton aria-label="Go back" icon={<FaArrowLeft />} sx={{ position: '-webkit-sticky', position: 'sticky', top: '80px' }} />
-      </Link>
+    <Center>
       <Stack
         textAlign={'center'}
         align={'center'}
@@ -81,7 +69,7 @@ const Recording = (props) => {
           </Flex>
         </Stack>
       </Stack>
-    </Container>
+    </Center>
   )
 }
 

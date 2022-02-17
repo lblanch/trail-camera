@@ -1,49 +1,63 @@
-import { Link as RouterLink } from 'react-router-dom'
 import { Center, Skeleton, Box, useColorModeValue, SimpleGrid, Heading,
-  Image, List, ListItem, ListIcon, LinkBox, Tag,
-  TagLabel, TagLeftIcon, TagCloseButton, Wrap, WrapItem,
-  LinkOverlay } from '@chakra-ui/react'
+  Image, List, ListItem, ListIcon, Tag, TagLabel, TagLeftIcon,
+  TagCloseButton, Wrap, WrapItem, useDisclosure, Modal, ModalOverlay,
+  ModalContent, ModalBody, ModalCloseButton } from '@chakra-ui/react'
 import { FaClock, FaCalendarAlt, FaTag } from 'react-icons/fa'
 import React, { useState, useRef, useCallback } from 'react'
 
+import Recording from './Recording'
 import recordingsServices from '../services/recordings'
 
 const RecordingCard = ({ dayIndex, index, recording }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const dateLocaleString = new Date(recording.mediaDate).toLocaleDateString()
+  const timeLocaleString = new Date(recording.mediaDate).toLocaleTimeString()
+
   return(
-    <LinkBox as={Center} name={`recording-${dayIndex}-${index}`}>
-      <Box maxW={'445px'} w={'full'} bg={useColorModeValue('white', 'gray.900')} boxShadow={'2xl'} rounded={'md'} p={4} overflow={'hidden'}>
-        <Box bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'}>
-          <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} />
+    <>
+      <Box as={Center} name={`recording-${dayIndex}-${index}`}>
+        <Box maxW={'445px'} w={'full'} bg={useColorModeValue('white', 'gray.900')} boxShadow={'2xl'} rounded={'md'} p={4} overflow={'hidden'}>
+          <Box as="button" bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'} onClick={onOpen}>
+            <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} />
+          </Box>
+          <List name={`info-${dayIndex}-${index}`} spacing={3}>
+            <ListItem>
+              <ListIcon as={FaCalendarAlt} color="green.500" />
+              <b>Date</b> {dateLocaleString}
+            </ListItem>
+            <ListItem>
+              <ListIcon as={FaClock} color="green.500" />
+              <b>Time:</b> {timeLocaleString}
+            </ListItem>
+          </List>
+          <Wrap spacing="10px" justify="left" py={4}>
+            {
+              recording.tags.map((tag) => {
+                return (
+                  <WrapItem key={tag._id}>
+                    <Tag variant="subtle" colorScheme={tag.color}>
+                      <TagLeftIcon boxSize="12px" as={FaTag} />
+                      <TagLabel>{tag.tag}</TagLabel>
+                      <TagCloseButton />
+                    </Tag>
+                  </WrapItem>
+                )
+              })
+            }
+          </Wrap>
         </Box>
-        <List name={`info-${dayIndex}-${index}`} spacing={3}>
-          <ListItem>
-            <ListIcon as={FaCalendarAlt} color="green.500" />
-            <LinkOverlay as={RouterLink} to={{ pathname: `/dashboard/${recording._id}`, state: { recording: recording } }}>
-              <b>Date</b> {new Date(recording.mediaDate).toLocaleDateString()}
-            </LinkOverlay>
-          </ListItem>
-          <ListItem>
-            <ListIcon as={FaClock} color="green.500" />
-            <b>Time:</b> {new Date(recording.mediaDate).toLocaleTimeString()}
-          </ListItem>
-        </List>
-        <Wrap spacing="10px" justify="left" py={4}>
-          {
-            recording.tags.map((tag) => {
-              return (
-                <WrapItem key={tag._id}>
-                  <Tag variant="subtle" colorScheme={tag.color}>
-                    <TagLeftIcon boxSize="12px" as={FaTag} />
-                    <TagLabel>{tag.tag}</TagLabel>
-                    <TagCloseButton />
-                  </Tag>
-                </WrapItem>
-              )
-            })
-          }
-        </Wrap>
       </Box>
-    </LinkBox>
+
+      <Modal isOpen={isOpen} size="full" onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalCloseButton />
+          <ModalBody>
+            <Recording recording={ recording } />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    </>
   )
 }
 
