@@ -18,7 +18,7 @@ const RecordingCard = ({ dayIndex, index, recording }) => {
       <Box as={Center} name={`recording-${dayIndex}-${index}`}>
         <Box maxW={'445px'} w={'full'} bg={useColorModeValue('white', 'gray.900')} boxShadow={'2xl'} rounded={'md'} p={4} overflow={'hidden'}>
           <Box as="button" bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'} onClick={onOpen}>
-            <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} crossorigin />
+            <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} crossorigin="" />
           </Box>
           <List name={`info-${dayIndex}-${index}`} spacing={3}>
             <ListItem>
