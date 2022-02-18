@@ -14,25 +14,38 @@ const CAMERA_TIMEZONE = 3
 const LOG_TAG = 'email-parser:'
 const MAX_RETRY_ATTEMPTS = 100
 const INBOX_MAILBOX = 'INBOX'
-const PINO_SILENT = { level: 'silent' }
-const PINO_DEV = {
-  prettyPrint: {
-    singleLine: true,
-    ignore: 'pid,hostname,time',
-    messageFormat: '{src} - {msg} - {error}'
-  },
-  level: 'debug'
-}
-const PINO_OPTIONS = process.env.NODE_ENV === 'development' ? PINO_DEV : PINO_SILENT
-const DEFAULT_IMAP_OPTIONS = {
-  host: process.env.IMAP_HOST,
-  port: 993,
-  secure: true,
-  auth: {
-    user: process.env.IMAP_USER,
-    pass: process.env.IMAP_PASSWORD
-  },
-  logger: pino(PINO_OPTIONS)
+
+let DEFAULT_IMAP_OPTIONS
+
+if (process.env.NODE_ENV === 'development') {
+  DEFAULT_IMAP_OPTIONS = {
+    host: process.env.DEV_IMAP_HOST,
+    port: 993,
+    secure: true,
+    auth: {
+      user: process.env.DEV_IMAP_USER,
+      pass: process.env.DEV_IMAP_PASSWORD
+    },
+    logger: pino({
+      prettyPrint: {
+        singleLine: true,
+        ignore: 'pid,hostname,time',
+        messageFormat: '{src} - {msg} - {error}'
+      },
+      level: 'debug'
+    })
+  }
+} else {
+  DEFAULT_IMAP_OPTIONS = {
+    host: process.env.IMAP_HOST,
+    port: 993,
+    secure: true,
+    auth: {
+      user: process.env.IMAP_USER,
+      pass: process.env.IMAP_PASSWORD
+    },
+    logger: pino({ level: 'silent' })
+  }
 }
 
 //Variables

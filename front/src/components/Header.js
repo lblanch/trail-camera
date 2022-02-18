@@ -1,6 +1,6 @@
 /* eslint-disable no-dupe-keys */
 import React from 'react'
-import { Link, HStack, Skeleton, Box, Flex, Menu, MenuButton, Avatar, Heading,
+import { HStack, Skeleton, Box, Flex, Menu, MenuButton, Avatar, Heading,
   MenuList, MenuItem, useColorModeValue, Text, Spacer,
   MenuDivider } from '@chakra-ui/react'
 
@@ -52,11 +52,7 @@ const Header = ({ loading, user, logout }) => {
   const headerReturn =
     <Box sx={{ position: '-webkit-sticky', position: 'sticky', top: 0, 'z-index': 1 }} name="app-header" bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
       <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
-        <Heading>
-          <Link _hover={{ textDecoration: 'none' }} href="#top">
-            {'TrailCam'}
-          </Link>
-        </Heading>
+        <Heading>TrailCam</Heading>
         <Spacer/>
         { user !== null ? <UserMenu user={user} logout={logout} /> : <></> }
       </Flex>

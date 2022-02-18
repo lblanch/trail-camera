@@ -1,4 +1,7 @@
 const simpleParser = require('mailparser').simpleParser
+const path = require('path')
+const ffmpeg = require('fluent-ffmpeg')
+const fs = require('fs')
 
 const { upsertRecording } = require('./services/recordings')
 const { sendFileToS3 } = require('./utils/awsS3')
@@ -6,11 +9,70 @@ const logger = require('./utils/logger')
 
 const LOG_TAG = 'email-parser:'
 
+const getVideoInfo = (videoFilename, ffmpegCommand) => {
+  return new Promise((resolve, reject) => {
+    return ffmpegCommand.input(videoFilename)
+      .ffprobe((error, videoInfo) => {
+        if (error) {
+          return reject(error)
+        }
+
+        return resolve({ duration: Math.floor(videoInfo.format.duration), width: videoInfo.streams[0].width })
+      })
+  })
+}
+
+const generateGifThumbnail = (videoFilename, fpsValue, outputFilename, ffmpegCommand) => {
+  return new Promise((resolve, reject) => {
+    return ffmpegCommand.input('/tmp/' + videoFilename)
+      .noAudio()
+      .format('gif')
+      .videoFilters('fps=1/' + fpsValue, 'scale=445:-1' ,'settb=1/2', 'setpts=N')
+      .outputOptions('-r 2')
+      .on('error', (err) => {
+        logger.info(LOG_TAG, 'ffmpeg: Cannot process image: ' + err.message)
+        return reject(err)
+      })
+      .on('end', () => {
+        logger.info(LOG_TAG, 'ffmpeg: Transcoding succeeded !')
+        return resolve('/tmp/processed_' + outputFilename)
+      })
+      .output('/tmp/processed_' + outputFilename)
+      .run()
+  })
+}
+
+const resizeImage = (imageFilename, outputFilename, ffmpegCommand) => {
+  return new Promise((resolve, reject) => {
+    return ffmpegCommand.input('/tmp/' + imageFilename)
+      .noAudio()
+      .format('jpg')
+      .videoFilters('scale=445:-1' )
+      .on('error', (err) => {
+        logger.info(LOG_TAG, 'ffmpeg: Cannot process video: ' + err.message)
+        return reject(err)
+      })
+      .on('end', () => {
+        logger.info(LOG_TAG, 'ffmpeg: Transcoding succeeded !')
+        return resolve('/tmp/processed_' + outputFilename)
+      })
+      .output('/tmp/processed_' + outputFilename)
+      .run()
+  })
+}
+
 const parseEmail = async (downloadedEmailContent, timezoneHours) => {
   const parsedEmail = await simpleParser(downloadedEmailContent)
 
   if (parsedEmail.attachments.length < 1) {
     throw new Error('email doesn\'t have attachments' )
+  } else if (parsedEmail.attachments.length > 1) {
+    throw new Error('email has too many attachments' )
+  }
+
+  const mediaTypeSplit = parsedEmail.attachments[0].contentType.split('/')
+  if (mediaTypeSplit[0] !== 'image' && mediaTypeSplit[0] !== 'video') {
+    throw new Error('email attachments are neither images nor videos' )
   }
 
   let newCameraInput = {}
@@ -45,16 +107,47 @@ const parseEmail = async (downloadedEmailContent, timezoneHours) => {
   } else {
     logger.info(LOG_TAG, 'email body does not have any text, using email delivery date')
     newCameraInput.mediaDate = newCameraInput.emailDeliveryDate
+    newCameraInput.emailBody = {}
   }
 
-  const fileKey = `${newCameraInput.mediaDate.getTime()}_${parsedEmail.attachments[0].filename}`
-  const metadata = { mediaDate: newCameraInput.mediaDate.toISOString() }
-  const mediaUrl = await sendFileToS3(parsedEmail.attachments[0].content, fileKey, metadata)
-  logger.info(LOG_TAG, 'picture uploaded to S3')
+  // Save attachment file to disk
+  await fs.promises.writeFile('/tmp/' + parsedEmail.attachments[0].filename, parsedEmail.attachments[0].content)
+  logger.info(LOG_TAG, 'media saved to /tmp/ at disk')
 
-  newCameraInput.mediaType = parsedEmail.attachments[0].contentType
-  newCameraInput.mediaThumbnailURL = mediaUrl
+  const devFolder = process.env.NODE_ENV === 'development' ? 'dev/' : ''
+  const mediaPath = path.parse(parsedEmail.attachments[0].filename)
+  const fileKeyWithoutExtension = `${devFolder}${newCameraInput.mediaDate.getTime()}_${mediaPath.name}`
+  const metadata = { mediaDate: newCameraInput.mediaDate.toISOString() }
+
+  const mediaUrl = await sendFileToS3('/tmp/' + parsedEmail.attachments[0].filename, fileKeyWithoutExtension + mediaPath.ext, metadata)
   newCameraInput.mediaURL = mediaUrl
+  newCameraInput.mediaType = parsedEmail.attachments[0].contentType
+  logger.info(LOG_TAG, 'media uploaded to S3')
+
+  // Instantiate ffmpeg command
+  const ffmpegCommand = new ffmpeg()
+
+  const { duration, width } = await getVideoInfo('/tmp/' + parsedEmail.attachments[0].filename, ffmpegCommand)
+
+  if (mediaTypeSplit[0] === 'image') {
+    if (width > 445) {
+      const processedImageFile = await resizeImage(parsedEmail.attachments[0].filename, mediaPath.name + '.jpg', ffmpegCommand)
+
+      const mediaThumbnailURL = await sendFileToS3(processedImageFile, fileKeyWithoutExtension + '.jpg', metadata)
+      newCameraInput.mediaThumbnailURL = mediaThumbnailURL
+      logger.info(LOG_TAG, 'resized jpg uploaded to S3')
+    } else {
+      // Use same image as thumbnail
+      newCameraInput.mediaThumbnailURL = mediaUrl
+    }
+  } else if (mediaTypeSplit[0] === 'video') {
+    const fpsValue = duration/5
+    const processedVideoFile = await generateGifThumbnail(parsedEmail.attachments[0].filename, fpsValue, mediaPath.name + '.gif', ffmpegCommand)
+
+    const mediaThumbnailURL = await sendFileToS3(processedVideoFile, fileKeyWithoutExtension + '.gif', metadata)
+    newCameraInput.mediaThumbnailURL = mediaThumbnailURL
+    logger.info(LOG_TAG, 'gif uploaded to S3')
+  }
 
   //Upsert to mongoDB
   await upsertRecording(newCameraInput)

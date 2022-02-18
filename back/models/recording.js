@@ -33,7 +33,7 @@ const recordingSchema = new mongoose.Schema({
     },
     subject: {
       type: String,
-      required: true
+      default: ''
     },
     mediaType: {
       type: String,

@@ -16,7 +16,7 @@
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
       "subject": "UM785 (Europe)|05.02.2021 20:42:44",
-      "mediaType": "picture",
+      "mediaType": "image/jpeg",
       "mediaThumbnailURL": "https://example.com/pics/IMG1.jpg",
       "mediaURL": "https://example.com/pics/IMG1.jpg"
     }
@@ -38,7 +38,7 @@
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
       "subject": "UM785 (Europe)|05.02.2021 20:42:44",
-      "mediaType": "picture",
+      "mediaType": "image/jpeg",
       "mediaThumbnailURL": "https://example.com/pics/IMG1.jpg",
       "mediaURL": "https://example.com/pics/IMG1.jpg",
       "tags": [
@@ -64,7 +64,7 @@
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
       "subject": "UM785 (Europe)|05.02.2021 20:42:44",
-      "mediaType": "picture",
+      "mediaType": "image/jpeg",
       "mediaThumbnailURL": "https://example.com/pics/IMG1.jpg",
       "mediaURL": "https://example.com/pics/IMG1.jpg"
     }
@@ -86,9 +86,31 @@
       "sentTo": "receiver@example.com",
       "sentFrom": "sender name <sender@example.com>",
       "subject": "UM785 (Europe)|05.02.2021 20:42:44",
-      "mediaType": "picture",
+      "mediaType": "image/jpeg",
       "mediaThumbnailURL": "https://example.com/pics/IMG1.jpg",
       "mediaURL": "https://example.com/pics/IMG1.jpg"
+    }
+  },
+  {
+    "count": 12,
+    "recording": {
+      "emailBody": {
+        "photo": "[10/Unlimited]",
+        "date": "04.02.21",
+        "time": "10:42:44",
+        "temperature": "23 degree Celsius(C)",
+        "battery": "80%",
+        "signal": "Good",
+        "sd-card-free-space": "14.42 GB of 14.91 GB(96.71%)"
+      },
+      "mediaDate": "2021-02-04T10:42:44.000Z",
+      "emailDeliveryDate": "2021-02-04T10:42:52.000Z",
+      "sentTo": "receiver@example.com",
+      "sentFrom": "sender name <sender@example.com>",
+      "subject": "UM785 (Europe)|04.02.2021 10:42:44",
+      "mediaType": "video/mp4",
+      "mediaThumbnailURL": "https://example.com/vids/IMG1.mp4",
+      "mediaURL": "https://example.com/vids/IMG1.mp4"
     }
   }
 ]

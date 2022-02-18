@@ -1,20 +1,83 @@
 const recordingsRouter = require('express').Router()
 const mongoose = require('mongoose')
 
-const { getRecordingsByPage, addTagToRecording, removeTagFromRecording } = require('../services/recordings')
+const { getRecordingsByPage, addTagToRecording, removeTagFromRecording,
+  getRecordingsByBeforeDate, getRecordingsByAfterDate } = require('../services/recordings')
 const { logInFromSession } = require('../utils/middleware')
+
+recordingsRouter.get('/before/:beforeDate', logInFromSession, async (request, response) => {
+  const receivedDate = new Date(request.params.beforeDate)
+
+  if (receivedDate.toString() === 'Invalid Date') {
+    const newError = new Error('Invalid before date')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const recordings = await getRecordingsByBeforeDate(receivedDate.toISOString())
+
+  if(recordings) {
+    recordings.recordings.reverse()
+    response.status(200).send(recordings)
+  } else {
+    response.status(200).send({ count: 0 })
+  }
+})
+
+recordingsRouter.get('/before/*', logInFromSession, async () => {
+  const newError = new Error('Invalid before date')
+  newError.statusCode = 400
+  throw newError
+})
+
+recordingsRouter.get('/before', logInFromSession, async () => {
+  const newError = new Error('Missing before date')
+  newError.statusCode = 400
+  throw newError
+})
+
+recordingsRouter.get('/after/:afterDate', logInFromSession, async (request, response) => {
+  const receivedDate = new Date(request.params.afterDate)
+
+  if (receivedDate.toString() === 'Invalid Date') {
+    const newError = new Error('Invalid after date')
+    newError.statusCode = 400
+    throw newError
+  }
+
+  const recordings = await getRecordingsByAfterDate(receivedDate.toISOString())
+
+  if(recordings) {
+    recordings.recordings.reverse()
+    response.status(200).send(recordings)
+  } else {
+    response.status(200).send({ count: 0 })
+  }
+})
+
+recordingsRouter.get('/after/*', logInFromSession, async () => {
+  const newError = new Error('Invalid after date')
+  newError.statusCode = 400
+  throw newError
+})
+
+recordingsRouter.get('/after', logInFromSession, async () => {
+  const newError = new Error('Missing after date')
+  newError.statusCode = 400
+  throw newError
+})
 
 recordingsRouter.get('/:page', logInFromSession, async (request, response) => {
   const numericPage = Number.parseInt(request.params.page)
   if (Number.isNaN(numericPage)) {
     const newError = new Error('Page needs to be a number')
-    newError.statusCode = 403
+    newError.statusCode = 400
     throw newError
   }
 
   if (numericPage <= 0) {
     const newError = new Error('Page needs to a positive number bigger than 0')
-    newError.statusCode = 403
+    newError.statusCode = 400
     throw newError
   }
 
