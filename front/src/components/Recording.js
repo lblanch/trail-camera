@@ -6,7 +6,7 @@ import { FaTag, FaCircle, FaThermometerHalf, FaCalendarAlt, FaClock } from 'reac
 const RecordingVideo = ({ videoUrl, mediaType }) => {
   return (
     <video controls>
-      <source src={videoUrl} type={mediaType} crossorigin="" />
+      <source src={videoUrl} type={mediaType} crossOrigin="" />
     </video>
   )
 }
@@ -23,7 +23,7 @@ const Recording = ({ recording }) => {
         py={8}>
         <Flex w={'full'}>
           { mediaTypeSplit[0] === 'image'
-            ? <Image src={recording.mediaURL} alt="Trail camera picture" crossorigin="" />
+            ? <Image src={recording.mediaURL} alt="Trail camera picture" crossOrigin="" />
             : <RecordingVideo videoUrl={recording.mediaURL} mediaType={recording.mediaType} />
           }
         </Flex>

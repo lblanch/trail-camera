@@ -17,8 +17,8 @@ const RecordingCard = ({ dayIndex, index, recording }) => {
     <>
       <Box as={Center} name={`recording-${dayIndex}-${index}`}>
         <Box maxW={'445px'} w={'full'} bg={useColorModeValue('white', 'gray.900')} boxShadow={'2xl'} rounded={'md'} p={4} overflow={'hidden'}>
-          <Box as="button" bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'} onClick={onOpen}>
-            <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} crossorigin="" />
+          <Box as="button" minH={'200'} maxH={'300'} bg={'gray.100'} mt={-6} mx={-6} mb={6} pos={'relative'} onClick={onOpen}>
+            <Image name={`thumbnail-${dayIndex}-${index}`} src={recording.mediaThumbnailURL} layout={'fill'} crossOrigin="" />
           </Box>
           <List name={`info-${dayIndex}-${index}`} spacing={3}>
             <ListItem>
@@ -79,7 +79,7 @@ const DayRecordings = ({ dayIndex, dayDate, dayRecordings }) => {
 }
 
 const Dashboard = ({ errorHandler }) => {
-  const MAX_RECORDINGS = 3
+  const MAX_RECORDINGS = 10
 
   const [infiniteScroll, setInfiniteScroll] = useState({ recordings: [], loading: false, isLastPage: false, isFirstPage: true })
 
@@ -192,7 +192,7 @@ const Dashboard = ({ errorHandler }) => {
         }
         await fetchRecordings(newFetchParams)
       }
-    }, { rootMargin:  '0px 0px 900px 0px' })
+    }, { rootMargin:  '0px 0px 100px 0px' })
 
     if (lastRecording) {
       observerLast.current.observe(lastRecording)
@@ -216,7 +216,7 @@ const Dashboard = ({ errorHandler }) => {
         }
         await fetchRecordings(newFetchParams)
       }
-    }, { rootMargin:  '900px 0px 0px 0px' })
+    }, { rootMargin:  '100px 0px 0px 0px' })
 
     if (firstRecording) {
       observerFirst.current.observe(firstRecording)
