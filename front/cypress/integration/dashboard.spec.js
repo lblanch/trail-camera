@@ -18,7 +18,7 @@ describe('Dashboard', () => {
 
       cy.loginAdmin()
 
-      cy.visit('/dashboard')
+      cy.visit('/')
 
       cy.wait('@recordingsFetch')
 
@@ -53,7 +53,7 @@ describe('Dashboard', () => {
 
       cy.loginAdmin()
 
-      cy.visit('/dashboard')
+      cy.visit('/')
 
       cy.wait('@recordingsFetch')
 
@@ -88,7 +88,7 @@ describe('Dashboard', () => {
 
       cy.loginAdmin()
 
-      cy.visit('/dashboard')
+      cy.visit('/')
 
       cy.wait('@recordingsFetch')
 

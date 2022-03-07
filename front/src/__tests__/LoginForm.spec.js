@@ -1,4 +1,5 @@
 import React from 'react'
+import { BrowserRouter } from 'react-router-dom'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
@@ -15,7 +16,7 @@ describe('<LoginForm />', () => {
 
     const mockHandler = jest.fn()
 
-    render(<LoginForm loginUser={mockHandler}/>)
+    render(<BrowserRouter><LoginForm loginUser={mockHandler} user={null} /></BrowserRouter>)
 
     userEvent.type(
       screen.getByLabelText('Email'),

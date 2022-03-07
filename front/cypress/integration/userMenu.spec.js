@@ -14,7 +14,7 @@ describe('User menu', () => {
 
       cy.loginAdmin()
 
-      cy.visit('/dashboard')
+      cy.visit('/')
 
       cy.wait('@userAuth')
 
@@ -50,7 +50,7 @@ describe('User menu', () => {
 
       cy.loginBasic()
 
-      cy.visit('/dashboard')
+      cy.visit('/')
 
       cy.wait('@userAuth')
 

@@ -8,7 +8,7 @@ describe('<Notification />', () => {
     const message = 'This message is not empty'
     const { container } = render(<Notification message={message}/>)
 
-    expect(screen.queryByText(message)).toBeInTheDocument()
+    expect(screen.getByText(message)).toBeInTheDocument()
     expect(container).not.toBeEmptyDOMElement()
   })
 

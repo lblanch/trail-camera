@@ -1,8 +1,16 @@
 import React, { useState } from 'react'
+import { useLocation, Navigate } from 'react-router-dom'
 import { VStack, Input, InputGroup, InputRightElement, Button, FormLabel, FormControl } from '@chakra-ui/react'
 
-const LoginForm = ({ loginUser }) => {
+const LoginForm = ({ loginUser, user }) => {
+  const location = useLocation()
   const [show, setShow] = useState(false)
+
+  if (user !== null) {
+    const to = location.state?.from?.pathname || '/'
+
+    return <Navigate to={to} replace />
+  }
 
   const handleShowPassword = () => {
     setShow(!show)

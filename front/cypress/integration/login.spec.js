@@ -19,7 +19,7 @@ describe('Login', () => {
 
     cy.get('form[name="login-form"]').should('not.exist')
 
-    cy.url().should('include', '/dashboard')
+    cy.url().should('eq', Cypress.config().baseUrl + '/')
 
     cy.getCookie('sid').should('exist')
 

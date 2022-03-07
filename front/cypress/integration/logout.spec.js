@@ -11,7 +11,7 @@ describe('Logout', () => {
 
     cy.loginAdmin()
 
-    cy.visit('/dashboard')
+    cy.visit('/')
 
     cy.wait('@userAuth')
 
