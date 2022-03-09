@@ -33,7 +33,16 @@ jobs:
       run: npm run test:ci
     - name: Rebuild front
       run: npm run build:ui
+    - name: Checking if theres anything to commit
+      id: check_changes
+      # Returns number of lines of git status --porcelain, each line should be a change.
+      # 0 lines means no changes to commit
+      # head -255 is a safeguard to avoid errors in the weird case of having more than 255 lines
+      run: | 
+        echo "::set-output name=changes::$(git status --porcelain | head -255 | wc -l)"
+        echo ${{ steps.check_changes.outputs.changes }}
     - name: Commit new front end files
+      if: ${{ steps.check_changes.outputs.changes != 0 }}
       run: |
         git config --global user.name 'github-actions'
         git config --global user.email 'github-actions@github.com'
