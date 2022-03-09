@@ -4,11 +4,6 @@ name: Back end CI
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - 'back/**'
-  pull_request:
-    branches: [ main ]
     paths:
       - 'back/**'
 
@@ -40,12 +35,13 @@ jobs:
       uses: supercharge/mongodb-github-action@1.6.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
-    - name: Run linter and tests
+    - name: Install needed packages
+      run: npm ci
+    - name: Run linter
+      run: npm run lint
+    - name: Run tests
       env: 
         SECRET: ${{ secrets.SECRET }}
         TEST_MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
         PORT: ${{ secrets.PORT }}
-      run: |
-        npm ci
-        npm run lint
-        npm test
+      run: npm test

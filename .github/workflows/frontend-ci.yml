@@ -5,11 +5,6 @@ name: Front end CI
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - 'front/**'
-  pull_request:
-    branches: [ main ]
     paths:
       - 'front/**'
 
@@ -18,7 +13,7 @@ defaults:
     working-directory: front
 
 jobs:
-  test:
+  test-and-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +30,7 @@ jobs:
     - name: Run linter
       run: npm run lint
     - name: Run tests
-      run: npm test:ci
+      run: npm run test:ci
     - name: Rebuild front
       run: npm run build:ui
     - name: Commit new front end files
