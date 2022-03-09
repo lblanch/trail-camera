@@ -40,7 +40,6 @@ jobs:
       # head -255 is a safeguard to avoid errors in the weird case of having more than 255 lines
       run: | 
         echo "::set-output name=changes::$(git status --porcelain | head -255 | wc -l)"
-        echo "Amount of changes is ${{ steps.check_changes.outputs.changes }}"
     - name: Commit new front end files
       if: ${{ steps.check_changes.outputs.changes != 0 }}
       run: |
