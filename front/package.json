@@ -20,6 +20,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:ui": "rm -rf ../back/build && INLINE_RUNTIME_CHUNK=false npm run build --prod && cp -r build ../back",
     "test": "react-scripts test --watchAll=false",
     "test:watch": "react-scripts test",
     "test:ci": "CI=true react-scripts test --verbose",
