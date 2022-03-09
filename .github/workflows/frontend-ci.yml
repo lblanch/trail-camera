@@ -40,12 +40,12 @@ jobs:
       # head -255 is a safeguard to avoid errors in the weird case of having more than 255 lines
       run: | 
         echo "::set-output name=changes::$(git status --porcelain | head -255 | wc -l)"
-        echo ${{ steps.check_changes.outputs.changes }}
+        echo "Amount of changes is ${{ steps.check_changes.outputs.changes }}"
     - name: Commit new front end files
       if: ${{ steps.check_changes.outputs.changes != 0 }}
       run: |
         git config --global user.name 'github-actions'
-        git config --global user.email 'github-actions@github.com'
+        git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
         git add ../back/build/
         git commit -m "Rebuilt front end"
         git push

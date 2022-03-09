@@ -56,7 +56,6 @@ const Header = ({ loading, user, logout }) => {
         <Spacer/>
         { user !== null ? <UserMenu user={user} logout={logout} /> : <></> }
       </Flex>
-      <div>Silly div for testing</div>
     </Box>
 
   // Cannot wrap the header inside Skeleton because it causes the position: sticky to not work.
