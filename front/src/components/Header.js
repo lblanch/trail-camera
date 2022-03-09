@@ -52,10 +52,11 @@ const Header = ({ loading, user, logout }) => {
   const headerReturn =
     <Box sx={{ position: '-webkit-sticky', position: 'sticky', top: 0, 'z-index': 1 }} name="app-header" bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
       <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
-        <Heading>TrailCam - TESTING</Heading>
+        <Heading>TrailCam</Heading>
         <Spacer/>
         { user !== null ? <UserMenu user={user} logout={logout} /> : <></> }
       </Flex>
+      <div>Silly div for testing</div>
     </Box>
 
   // Cannot wrap the header inside Skeleton because it causes the position: sticky to not work.
