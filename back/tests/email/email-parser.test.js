@@ -142,7 +142,6 @@ describe('Extracting data in received emails', () => {
       mockedFfmpeg.mockImplementation(function() {
         this.input= jest.fn().mockReturnThis(),
         this.noAudio = jest.fn().mockReturnThis(),
-        this.format = jest.fn().mockReturnThis(),
         this.videoFilters = jest.fn().mockReturnThis(),
         this.on = jest.fn((type, callback) => {
           if (type === 'end')
@@ -168,7 +167,6 @@ describe('Extracting data in received emails', () => {
 
       expect(ffmpegMockedInstance.ffprobe).toHaveBeenCalledTimes(1)
       expect(ffmpegMockedInstance.input).toHaveBeenCalledTimes(2)
-      expect(ffmpegMockedInstance.format).toHaveBeenCalledTimes(1)
       expect(ffmpegMockedInstance.videoFilters).toHaveBeenCalledTimes(1)
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalledTimes(2)
       expect(mockedRecordings.upsertRecording).toHaveBeenCalledTimes(1)
@@ -178,7 +176,6 @@ describe('Extracting data in received emails', () => {
       const uploadedThumbnailFilename = mockedAwsS3.sendFileToS3.mock.calls[1][1]
 
       expect(ffmpegMockedInstance.input).toHaveBeenCalledWith('/tmp/' +'thumb0005.jpg')
-      expect(ffmpegMockedInstance.format).toHaveBeenCalledWith('jpg')
       expect(ffmpegMockedInstance.videoFilters).toHaveBeenCalledWith('scale=445:-1')
       expect(uploadedPictureFilename).toMatch(/^.*\.(jpg)$/)
       expect(uploadedThumbnailFilename).toMatch(/^.*\.(jpg)$/)
@@ -191,7 +188,6 @@ describe('Extracting data in received emails', () => {
       mockedFfmpeg.mockImplementation(function() {
         this.input= jest.fn().mockReturnThis(),
         this.noAudio = jest.fn().mockReturnThis(),
-        this.format = jest.fn().mockReturnThis(),
         this.videoFilters = jest.fn().mockReturnThis(),
         this.on = jest.fn().mockReturnThis(),
         this.output = jest.fn().mockReturnThis(),
@@ -213,7 +209,6 @@ describe('Extracting data in received emails', () => {
 
       expect(ffmpegMockedInstance.ffprobe).toHaveBeenCalledTimes(1)
       expect(ffmpegMockedInstance.input).toHaveBeenCalledTimes(1)
-      expect(ffmpegMockedInstance.format).not.toHaveBeenCalled()
       expect(ffmpegMockedInstance.videoFilters).not.toHaveBeenCalled()
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalledTimes(1)
       expect(mockedRecordings.upsertRecording).toHaveBeenCalledTimes(1)
@@ -229,7 +224,6 @@ describe('Extracting data in received emails', () => {
       mockedFfmpeg.mockImplementation(function() {
         this.input= jest.fn().mockReturnThis(),
         this.noAudio = jest.fn().mockReturnThis(),
-        this.format = jest.fn().mockReturnThis(),
         this.videoFilters = jest.fn().mockReturnThis(),
         this.on = jest.fn().mockReturnThis(),
         this.pipe = jest.fn(() => 'mocked stream'),
@@ -250,7 +244,6 @@ describe('Extracting data in received emails', () => {
 
       expect(ffmpegMockedInstance.ffprobe).toHaveBeenCalledTimes(1)
       expect(ffmpegMockedInstance.input).toHaveBeenCalledTimes(1)
-      expect(ffmpegMockedInstance.format).not.toHaveBeenCalled()
       expect(ffmpegMockedInstance.videoFilters).not.toHaveBeenCalled()
       expect(mockedAwsS3.sendFileToS3).toHaveBeenCalledTimes(1)
       expect(mockedRecordings.upsertRecording).toHaveBeenCalledTimes(1)
