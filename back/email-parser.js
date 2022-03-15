@@ -46,13 +46,9 @@ const resizeImage = (imageFilename, outputFilename, ffmpegCommand) => {
   return new Promise((resolve, reject) => {
     return ffmpegCommand.input('/tmp/' + imageFilename)
       .noAudio()
-      .format('jpg')
       .videoFilters('scale=445:-1' )
-      .on('start', function(commandLine) {
-        logger.info(LOG_TAG, 'Spawned Ffmpeg with command: ' + commandLine)
-      })
       .on('error', (err) => {
-        logger.info(LOG_TAG, 'ffmpeg: Cannot process video: ' + err.message)
+        logger.info(LOG_TAG, 'ffmpeg: Cannot process image: ' + err.message)
         return reject(err)
       })
       .on('end', () => {
