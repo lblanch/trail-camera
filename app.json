@@ -11,11 +11,11 @@
   "formation": {
     "web": {
       "quantity": 1,
-      "size": "hobby"
+      "size": "basic"
     },
     "worker": {
       "quantity": 1,
-      "size": "hobby"
+      "size": "basic"
     }
   },
   "buildpacks": [
@@ -45,11 +45,11 @@
       "formation": {
         "web": {
           "quantity": 1,
-          "size": "basic"
+          "size": "eco"
         },
         "worker": {
           "quantity": 0,
-          "size": "basic"
+          "size": "eco"
         }
       }
     }
