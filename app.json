@@ -45,11 +45,11 @@
       "formation": {
         "web": {
           "quantity": 1,
-          "size": "free"
+          "size": "basic"
         },
         "worker": {
           "quantity": 0,
-          "size": "free"
+          "size": "basic"
         }
       }
     }
